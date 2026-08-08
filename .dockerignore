@@ -1,0 +1,10 @@
+# School Management System
+bin/
+obj/
+.vs/
+*.user
+*.suo
+.env
+**/appsettings.*.local.json
+postgres_data/
+minio_data/

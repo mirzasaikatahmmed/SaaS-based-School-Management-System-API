@@ -1,0 +1,45 @@
+@baseUrl = http://localhost:5000
+@tenant = greenwood
+
+### Super admin login
+# @name superLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "superadmin@schoolmgmt.com",
+  "password": "SuperAdmin@123"
+}
+
+### Create tenant
+POST {{baseUrl}}/api/tenants
+Authorization: Bearer {{superLogin.response.body.data.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Riverside Academy",
+  "slug": "riverside",
+  "admin": {
+    "email": "admin@riverside.edu",
+    "username": "rvadmin",
+    "password": "Admin@12345",
+    "firstName": "River",
+    "lastName": "Admin"
+  }
+}
+
+### Tenant login
+# @name tenantLogin
+POST {{baseUrl}}/api/auth/login
+X-Tenant-ID: {{tenant}}
+Content-Type: application/json
+
+{
+  "email": "admin@greenwood.edu",
+  "password": "Admin@12345"
+}
+
+### Current user
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{tenantLogin.response.body.data.accessToken}}
+X-Tenant-ID: {{tenant}}
