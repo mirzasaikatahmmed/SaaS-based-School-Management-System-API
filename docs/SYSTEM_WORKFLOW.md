@@ -190,7 +190,7 @@ erDiagram
   USER ||--o{ USER_ROLE : has
   ROLE ||--o{ USER_ROLE : has
   STUDENT ||--|| USER : "student login"
-  STUDENT }o--|| CLASS : enrolled
+  STUDENT }o--|| SCHOOL_CLASS : enrolled
   STUDENT }o--o| SECTION : enrolled
   STUDENT }o--o| CATEGORY : tagged
   STUDENT ||--o{ GUARDIAN : has
