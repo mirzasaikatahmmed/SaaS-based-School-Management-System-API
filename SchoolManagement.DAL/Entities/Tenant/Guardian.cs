@@ -3,8 +3,9 @@ namespace SchoolManagement.DAL.Entities.Tenant;
 public class Guardian
 {
     public Guid Id { get; set; }
-    public Guid StudentId { get; set; }
+    public Guid? StudentId { get; set; }
     public Guid? UserId { get; set; }
+    public string? ReferenceNo { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Relation { get; set; } = string.Empty;
     public string? FatherName { get; set; }
@@ -18,10 +19,18 @@ public class Guardian
     public string? Email { get; set; }
     public string? Address { get; set; }
     public string? ProfilePictureUrl { get; set; }
+    public string? AlternativeParentName { get; set; }
+    public string? AlternativeParentRelation { get; set; }
+    public string? AlternativeParentMobileNo { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? TwitterUrl { get; set; }
+    public string? LinkedInUrl { get; set; }
     public bool IsPrimary { get; set; } = true;
+    public bool IsActive { get; set; } = true;
+    public bool IsLoginActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public Student Student { get; set; } = null!;
+    public Student? Student { get; set; }
     public User? User { get; set; }
 }

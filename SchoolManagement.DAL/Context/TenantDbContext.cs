@@ -37,11 +37,15 @@ public class TenantDbContext : DbContext
     public DbSet<ClassEntity> Classes => Set<ClassEntity>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<StudentCategory> StudentCategories => Set<StudentCategory>();
+    public DbSet<DeactivateReason> DeactivateReasons => Set<DeactivateReason>();
     public DbSet<TransportRoute> TransportRoutes => Set<TransportRoute>();
     public DbSet<Hostel> Hostels => Set<Hostel>();
     public DbSet<HostelRoom> HostelRooms => Set<HostelRoom>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Guardian> Guardians => Set<Guardian>();
+    public DbSet<OnlineAdmission> OnlineAdmissions => Set<OnlineAdmission>();
+    public DbSet<ImportBatch> ImportBatches => Set<ImportBatch>();
+    public DbSet<ImportBatchRow> ImportBatchRows => Set<ImportBatchRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -184,6 +188,18 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
         });
 
+        modelBuilder.Entity<DeactivateReason>(entity =>
+        {
+            entity.ToTable("deactivate_reasons", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Reason).HasColumnName("reason").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.Reason).IsUnique();
+        });
+
         modelBuilder.Entity<TransportRoute>(entity =>
         {
             entity.ToTable("transport_routes", schema);
@@ -259,6 +275,10 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.HostelId).HasColumnName("hostel_id");
             entity.Property(e => e.RoomId).HasColumnName("room_id");
             entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.DeactivateReason).HasColumnName("deactivate_reason");
+            entity.Property(e => e.DeactivateReasonId).HasColumnName("deactivate_reason_id");
+            entity.Property(e => e.DeactivatedAt).HasColumnName("deactivated_at");
+            entity.Property(e => e.DeactivatedBy).HasColumnName("deactivated_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
 
@@ -268,6 +288,11 @@ public class TenantDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.DeactivateReasonRef)
+                .WithMany(r => r.Students)
+                .HasForeignKey(e => e.DeactivateReasonId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.Class)
                 .WithMany(c => c.Students)
@@ -307,6 +332,7 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ReferenceNo).HasColumnName("reference_no").HasMaxLength(50);
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
             entity.Property(e => e.Relation).HasColumnName("relation").HasMaxLength(100).IsRequired();
             entity.Property(e => e.FatherName).HasColumnName("father_name").HasMaxLength(200);
@@ -320,18 +346,144 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
             entity.Property(e => e.Address).HasColumnName("address");
             entity.Property(e => e.ProfilePictureUrl).HasColumnName("profile_picture_url").HasMaxLength(500);
+            entity.Property(e => e.AlternativeParentName).HasColumnName("alternative_parent_name").HasMaxLength(200);
+            entity.Property(e => e.AlternativeParentRelation).HasColumnName("alternative_parent_relation").HasMaxLength(100);
+            entity.Property(e => e.AlternativeParentMobileNo).HasColumnName("alternative_parent_mobile").HasMaxLength(20);
+            entity.Property(e => e.FacebookUrl).HasColumnName("facebook_url").HasMaxLength(500);
+            entity.Property(e => e.TwitterUrl).HasColumnName("twitter_url").HasMaxLength(500);
+            entity.Property(e => e.LinkedInUrl).HasColumnName("linkedin_url").HasMaxLength(500);
             entity.Property(e => e.IsPrimary).HasColumnName("is_primary").HasDefaultValue(true);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.IsLoginActive).HasColumnName("is_login_active").HasDefaultValue(true);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.ReferenceNo).IsUnique();
 
             entity.HasOne(e => e.Student)
                 .WithMany(s => s.Guardians)
                 .HasForeignKey(e => e.StudentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
 
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<OnlineAdmission>(entity =>
+        {
+            entity.ToTable("online_admissions", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ReferenceNo).HasColumnName("reference_no").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.AcademicYear).HasColumnName("academic_year");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.ClassName).HasColumnName("class_name").HasMaxLength(100);
+            entity.Property(e => e.FirstName).HasColumnName("first_name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.LastName).HasColumnName("last_name").HasMaxLength(100);
+            entity.Property(e => e.Gender).HasColumnName("gender").HasMaxLength(20);
+            entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth").HasColumnType("date");
+            entity.Property(e => e.BloodGroup).HasColumnName("blood_group").HasMaxLength(10);
+            entity.Property(e => e.Religion).HasColumnName("religion").HasMaxLength(100);
+            entity.Property(e => e.MobileNo).HasColumnName("mobile_no").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
+            entity.Property(e => e.PresentAddress).HasColumnName("present_address");
+            entity.Property(e => e.PermanentAddress).HasColumnName("permanent_address");
+            entity.Property(e => e.BirthRegistrationNumber).HasColumnName("birth_registration_number").HasMaxLength(100);
+            entity.Property(e => e.ProfilePictureUrl).HasColumnName("profile_picture_url").HasMaxLength(500);
+            entity.Property(e => e.GuardianName).HasColumnName("guardian_name").HasMaxLength(200);
+            entity.Property(e => e.GuardianRelation).HasColumnName("guardian_relation").HasMaxLength(100);
+            entity.Property(e => e.GuardianMobile).HasColumnName("guardian_mobile").HasMaxLength(20);
+            entity.Property(e => e.GuardianEmail).HasColumnName("guardian_email").HasMaxLength(255);
+            entity.Property(e => e.FatherName).HasColumnName("father_name").HasMaxLength(200);
+            entity.Property(e => e.MotherName).HasColumnName("mother_name").HasMaxLength(200);
+            entity.Property(e => e.PreviousSchoolName).HasColumnName("previous_school_name").HasMaxLength(255);
+            entity.Property(e => e.PreviousSchoolQualification).HasColumnName("previous_school_qualification").HasMaxLength(255);
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Apply");
+            entity.Property(e => e.PaymentStatus).HasColumnName("payment_status").HasMaxLength(20).IsRequired().HasDefaultValue("Unpaid");
+            entity.Property(e => e.PaymentAmount).HasColumnName("payment_amount").HasColumnType("numeric(12,2)");
+            entity.Property(e => e.PaymentDate).HasColumnName("payment_date");
+            entity.Property(e => e.PaymentReference).HasColumnName("payment_reference").HasMaxLength(200);
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.DeclineReason).HasColumnName("decline_reason");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ApplyDate).HasColumnName("apply_date").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.ReferenceNo).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.ClassId);
+
+            entity.HasOne(e => e.Class)
+                .WithMany()
+                .HasForeignKey(e => e.ClassId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // reviewed_by may be a Super Admin (public.super_admins) — no FK to tenant users
+
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ImportBatch>(entity =>
+        {
+            entity.ToTable("import_batches", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.FileName).HasColumnName("file_name").HasMaxLength(255).IsRequired();
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500);
+            entity.Property(e => e.TotalRows).HasColumnName("total_rows").HasDefaultValue(0);
+            entity.Property(e => e.SuccessCount).HasColumnName("success_count").HasDefaultValue(0);
+            entity.Property(e => e.FailedCount).HasColumnName("failed_count").HasDefaultValue(0);
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.ImportedBy).HasColumnName("imported_by");
+            entity.Property(e => e.StartedAt).HasColumnName("started_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+
+            entity.HasOne(e => e.Class)
+                .WithMany()
+                .HasForeignKey(e => e.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Section)
+                .WithMany()
+                .HasForeignKey(e => e.SectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ImportBatchRow>(entity =>
+        {
+            entity.ToTable("import_batch_rows", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.BatchId).HasColumnName("batch_id");
+            entity.Property(e => e.RowNumber).HasColumnName("row_number");
+            entity.Property(e => e.RawData).HasColumnName("raw_data").HasColumnType("jsonb");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ErrorMessage).HasColumnName("error_message");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.BatchId);
+            entity.HasIndex(e => e.Status);
+
+            entity.HasOne(e => e.Batch)
+                .WithMany(b => b.Rows)
+                .HasForeignKey(e => e.BatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

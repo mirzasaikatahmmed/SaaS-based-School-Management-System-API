@@ -7,6 +7,12 @@ public interface ITenantSchemaProvisioner
 {
     Task ProvisionAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureAdmissionModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureOnlineAdmissionModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureStudentImportModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureStudentDeactivationFieldsAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureDeactivateReasonMasterAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureGuardianParentFieldsAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureGuardianSocialAndAlternativeFieldsAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -211,14 +217,18 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 hostel_id UUID REFERENCES "{schemaName}".hostels(id),
                 room_id UUID REFERENCES "{schemaName}".hostel_rooms(id),
                 is_active BOOLEAN NOT NULL DEFAULT true,
+                deactivate_reason TEXT,
+                deactivated_at TIMESTAMPTZ,
+                deactivated_by UUID,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
 
             CREATE TABLE IF NOT EXISTS "{schemaName}".guardians (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id) ON DELETE CASCADE,
+                student_id UUID REFERENCES "{schemaName}".students(id) ON DELETE CASCADE,
                 user_id UUID REFERENCES "{schemaName}".users(id),
+                reference_no VARCHAR(50),
                 name VARCHAR(200) NOT NULL,
                 relation VARCHAR(100) NOT NULL,
                 father_name VARCHAR(200),
@@ -232,10 +242,21 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 email VARCHAR(255),
                 address TEXT,
                 profile_picture_url VARCHAR(500),
+                alternative_parent_name VARCHAR(200),
+                alternative_parent_relation VARCHAR(100),
+                alternative_parent_mobile VARCHAR(20),
+                facebook_url VARCHAR(500),
+                twitter_url VARCHAR(500),
+                linkedin_url VARCHAR(500),
                 is_primary BOOLEAN NOT NULL DEFAULT true,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                is_login_active BOOLEAN NOT NULL DEFAULT true,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_guardians_reference_no"
+                ON "{schemaName}".guardians (reference_no) WHERE reference_no IS NOT NULL;
 
             INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
             VALUES ('20260809010000_AddAdmissionModule', '10.0.0')
@@ -268,17 +289,278 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             INSERT INTO "{schemaName}".student_categories (id, name, is_active)
             SELECT gen_random_uuid(), v.name, true
             FROM (VALUES
-                ('General'),
-                ('Freedom Fighter'),
-                ('Tribal'),
-                ('Special Needs')
+                ('COMMON'),
+                ('GENERAL'),
+                ('FREEDOM FIGHTER'),
+                ('TRIBAL'),
+                ('SPECIAL NEEDS')
             ) AS v(name)
             WHERE NOT EXISTS (
-                SELECT 1 FROM "{schemaName}".student_categories sc WHERE sc.name = v.name
+                SELECT 1 FROM "{schemaName}".student_categories sc
+                WHERE UPPER(sc.name) = UPPER(v.name)
             );
             """;
 
         await _masterDbContext.Database.ExecuteSqlRawAsync(seedSql, cancellationToken);
+        await EnsureOnlineAdmissionModuleAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureOnlineAdmissionModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".online_admissions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                reference_no VARCHAR(50) NOT NULL UNIQUE,
+                academic_year INT NOT NULL,
+                class_id UUID REFERENCES "{schemaName}".classes(id),
+                class_name VARCHAR(100),
+                first_name VARCHAR(100) NOT NULL,
+                last_name VARCHAR(100),
+                gender VARCHAR(20),
+                date_of_birth DATE,
+                blood_group VARCHAR(10),
+                religion VARCHAR(100),
+                mobile_no VARCHAR(20) NOT NULL,
+                email VARCHAR(255),
+                present_address TEXT,
+                permanent_address TEXT,
+                birth_registration_number VARCHAR(100),
+                profile_picture_url VARCHAR(500),
+                guardian_name VARCHAR(200),
+                guardian_relation VARCHAR(100),
+                guardian_mobile VARCHAR(20),
+                guardian_email VARCHAR(255),
+                father_name VARCHAR(200),
+                mother_name VARCHAR(200),
+                previous_school_name VARCHAR(255),
+                previous_school_qualification VARCHAR(255),
+                status VARCHAR(20) NOT NULL DEFAULT 'Apply',
+                payment_status VARCHAR(20) NOT NULL DEFAULT 'Unpaid',
+                payment_amount DECIMAL(12,2),
+                payment_date TIMESTAMPTZ,
+                payment_reference VARCHAR(200),
+                reviewed_by UUID,
+                reviewed_at TIMESTAMPTZ,
+                decline_reason TEXT,
+                student_id UUID REFERENCES "{schemaName}".students(id),
+                apply_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            -- Super Admin reviewers are not tenant users — drop FK if an older provision created it
+            ALTER TABLE "{schemaName}".online_admissions
+                DROP CONSTRAINT IF EXISTS online_admissions_reviewed_by_fkey;
+
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_online_admissions_status"
+                ON "{schemaName}".online_admissions (status);
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_online_admissions_class"
+                ON "{schemaName}".online_admissions (class_id);
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_online_admissions_reference"
+                ON "{schemaName}".online_admissions (reference_no);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809020000_AddOnlineAdmissionModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureStudentImportModuleAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureStudentImportModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".import_batches (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                file_name VARCHAR(255) NOT NULL,
+                file_url VARCHAR(500),
+                total_rows INT NOT NULL DEFAULT 0,
+                success_count INT NOT NULL DEFAULT 0,
+                failed_count INT NOT NULL DEFAULT 0,
+                status VARCHAR(20) NOT NULL DEFAULT 'Processing',
+                imported_by UUID NOT NULL,
+                started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                completed_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".import_batch_rows (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                batch_id UUID NOT NULL REFERENCES "{schemaName}".import_batches(id) ON DELETE CASCADE,
+                row_number INT NOT NULL,
+                raw_data JSONB NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+                student_id UUID REFERENCES "{schemaName}".students(id),
+                error_message TEXT,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_import_batch_rows_batch"
+                ON "{schemaName}".import_batch_rows (batch_id);
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_import_batch_rows_status"
+                ON "{schemaName}".import_batch_rows (status);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809030000_AddStudentImportModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureStudentDeactivationFieldsAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureStudentDeactivationFieldsAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".students ADD COLUMN IF NOT EXISTS deactivate_reason TEXT;
+            ALTER TABLE "{schemaName}".students ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMPTZ;
+            ALTER TABLE "{schemaName}".students ADD COLUMN IF NOT EXISTS deactivated_by UUID;
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260808195033_AddStudentDeactivationFields', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureDeactivateReasonMasterAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureDeactivateReasonMasterAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".deactivate_reasons (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                reason VARCHAR(200) NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_deactivate_reasons_reason"
+                ON "{schemaName}".deactivate_reasons (LOWER(reason));
+
+            ALTER TABLE "{schemaName}".students
+                ADD COLUMN IF NOT EXISTS deactivate_reason_id UUID REFERENCES "{schemaName}".deactivate_reasons(id);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260808195514_AddDeactivateReasonMaster', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureGuardianParentFieldsAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureGuardianParentFieldsAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".guardians
+                ALTER COLUMN student_id DROP NOT NULL;
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS reference_no VARCHAR(50);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS is_login_active BOOLEAN NOT NULL DEFAULT true;
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_guardians_reference_no"
+                ON "{schemaName}".guardians (reference_no) WHERE reference_no IS NOT NULL;
+
+            WITH numbered AS (
+                SELECT id,
+                       EXTRACT(YEAR FROM created_at)::int AS yr,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY EXTRACT(YEAR FROM created_at)
+                           ORDER BY created_at, id
+                       ) AS rn
+                FROM "{schemaName}".guardians
+                WHERE reference_no IS NULL
+            )
+            UPDATE "{schemaName}".guardians g
+            SET reference_no = n.yr::text || LPAD(n.rn::text, 3, '0')
+            FROM numbered n
+            WHERE g.id = n.id;
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260808200014_AddGuardianReferenceNo', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureGuardianSocialAndAlternativeFieldsAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureGuardianSocialAndAlternativeFieldsAsync(
+        string schemaName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS alternative_parent_name VARCHAR(200);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS alternative_parent_relation VARCHAR(100);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS alternative_parent_mobile VARCHAR(20);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS facebook_url VARCHAR(500);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS twitter_url VARCHAR(500);
+
+            ALTER TABLE "{schemaName}".guardians
+                ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(500);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260808200303_AddGuardianSocialAndAlternativeFields', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 
     public async Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default)

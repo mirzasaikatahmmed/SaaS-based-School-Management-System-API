@@ -50,12 +50,24 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<IStudentService, StudentService>();
+        services.AddScoped<IOnlineAdmissionService, OnlineAdmissionService>();
+        services.AddScoped<IStudentImportService, StudentImportService>();
+        services.AddScoped<IStudentCategoryService, StudentCategoryService>();
+        services.AddScoped<IStudentListService, StudentListService>();
+        services.AddScoped<IDeactivateReasonService, DeactivateReasonService>();
+        services.AddScoped<ILoginDeactivateService, LoginDeactivateService>();
+        services.AddScoped<IParentService, ParentService>();
+        services.AddScoped<IParentLoginDeactivateService, ParentLoginDeactivateService>();
         services.AddSingleton<IStorageService, StorageService>();
 
 
         services.AddValidatorsFromAssemblyContaining<LoginValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateSchoolValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateAdmissionValidator>();
+        services.AddValidatorsFromAssemblyContaining<SubmitOnlineAdmissionValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateStudentCategoryValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateDeactivateReasonValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddParentValidator>();
         services.AddScoped<ValidationFilter>();
 
         return services;

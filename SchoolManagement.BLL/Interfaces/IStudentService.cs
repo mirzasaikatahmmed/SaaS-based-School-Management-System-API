@@ -1,4 +1,7 @@
+using SchoolManagement.BLL.DTOs.Import;
+using SchoolManagement.BLL.DTOs.OnlineAdmission;
 using SchoolManagement.BLL.DTOs.Student;
+using SchoolManagement.DAL.Entities.Tenant;
 using SchoolManagement.DAL.Repositories.Interfaces;
 
 namespace SchoolManagement.BLL.Interfaces;
@@ -8,6 +11,8 @@ public interface IStudentService
     Task<StudentListResponseDto> GetStudentsAsync(StudentSearchFilter filter, CancellationToken cancellationToken = default);
     Task<StudentResponseDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<StudentResponseDto> CreateAdmissionAsync(CreateAdmissionDto dto, CancellationToken cancellationToken = default);
+    Task<Student> CreateFromOnlineAdmissionAsync(OnlineAdmission application, ApproveAdmissionDto dto, CancellationToken cancellationToken = default);
+    Task<Student> CreateFromImportRowAsync(Guid classId, Guid sectionId, StudentImportRowDto row, CancellationToken cancellationToken = default);
     Task<StudentResponseDto> UpdateAdmissionAsync(Guid id, UpdateAdmissionDto dto, CancellationToken cancellationToken = default);
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default);
     Task<StudentResponseDto> UploadProfilePictureAsync(Guid id, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);

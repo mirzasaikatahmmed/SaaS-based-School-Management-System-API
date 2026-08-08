@@ -1,23 +1,28 @@
 # Graph Report - SchoolManagement  (2026-08-09)
 
 ## Corpus Check
-- 68 files · ~17,849 words
+- 111 files · ~35,608 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 655 nodes · 1582 edges · 23 communities (22 shown, 1 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 94 edges (avg confidence: 0.8)
+- 1097 nodes · 3025 edges · 27 communities (26 shown, 1 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 171 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `3fe6359a`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Tenant
-- User
-- SchoolManagement.DAL.Context
+- TenantDbContext
+- SchoolManagement.DAL.Entities.Tenant
 - UnitOfWork
-- UserProfileDto
+- .SaveTenantChangesAsync
 - SchoolManagement.BLL
-- .GetAll
-- InitialMaster
+- IUnitOfWork
+- SchoolManagement.DAL.Migrations.Tenant
 - StorageService
 - ApiResponse
 - School Management System — Foundation (Authentication + Multi-Tenancy)
@@ -28,96 +33,100 @@
 - .HandleExceptionAsync
 - AppConstants
 - .SeedSuperAdminAsync
-- MasterDbContext
+- OnlineAdmissionService
 - ServiceCollectionExtensions
-- SchoolRepository
+- IAdmissionLookupRepository
 - UserRoleEnum.cs
 - .OnActionExecutionAsync
+- StudentService
+- OnlineAdmission
+- Student
+- Guardian
 
 ## God Nodes (most connected - your core abstractions)
-1. `Tenant` - 36 edges
-2. `SchoolService` - 27 edges
-3. `ApiResponse` - 25 edges
-4. `User` - 23 edges
-5. `IUserRepository` - 22 edges
-6. `UserRepository` - 21 edges
-7. `SchoolManagement.DAL.Context` - 19 edges
-8. `ITenantRepository` - 19 edges
-9. `SchoolResponseDto` - 17 edges
-10. `TenantResponseDto` - 17 edges
+1. `ApiResponse` - 49 edges
+2. `Tenant` - 38 edges
+3. `StudentService` - 36 edges
+4. `OnlineAdmissionService` - 35 edges
+5. `Student` - 34 edges
+6. `TenantDbContext` - 30 edges
+7. `SchoolManagement.DAL.Entities.Tenant` - 28 edges
+8. `SchoolManagement.DAL.Repositories.Interfaces` - 28 edges
+9. `SchoolService` - 27 edges
+10. `SchoolManagement.DAL.Context` - 27 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `AdmissionController` --references--> `IStudentService`  [EXTRACTED]
+  SchoolManagement.API/Controllers/AdmissionController.cs → SchoolManagement.BLL/Interfaces/IStudentService.cs
+- `AdmissionLookupController` --references--> `IStudentService`  [EXTRACTED]
+  SchoolManagement.API/Controllers/AdmissionLookupController.cs → SchoolManagement.BLL/Interfaces/IStudentService.cs
+- `SchoolController` --references--> `ISchoolService`  [EXTRACTED]
+  SchoolManagement.API/Controllers/SchoolController.cs → SchoolManagement.BLL/Interfaces/ISchoolService.cs
 - `SchoolController` --references--> `ITenantContext`  [EXTRACTED]
   SchoolManagement.API/Controllers/SchoolController.cs → SchoolManagement.DAL/TenantContext/ITenantContext.cs
-- `AuthService` --references--> `ITenantRepository`  [EXTRACTED]
-  SchoolManagement.BLL/Services/AuthService.cs → SchoolManagement.DAL/Repositories/Interfaces/ITenantRepository.cs
-- `AuthService` --references--> `ITenantContext`  [EXTRACTED]
-  SchoolManagement.BLL/Services/AuthService.cs → SchoolManagement.DAL/TenantContext/ITenantContext.cs
-- `AuthService` --references--> `IUnitOfWork`  [EXTRACTED]
-  SchoolManagement.BLL/Services/AuthService.cs → SchoolManagement.DAL/UnitOfWork/IUnitOfWork.cs
-- `SchoolService` --references--> `MasterDbContext`  [EXTRACTED]
-  SchoolManagement.BLL/Services/SchoolService.cs → SchoolManagement.DAL/Context/MasterDbContext.cs
+- `TenantController` --references--> `ITenantService`  [EXTRACTED]
+  SchoolManagement.API/Controllers/TenantController.cs → SchoolManagement.BLL/Interfaces/ITenantService.cs
 
 ## Import Cycles
 - None detected.
 
-## Communities (23 total, 1 thin omitted)
+## Communities (27 total, 1 thin omitted)
 
 ### Community 0 - "Tenant"
-Cohesion: 0.08
-Nodes (30): IAsyncDisposable, IServiceScopeFactory, DateTime, Guid, TenantResponseDto, CancellationToken, ILogger, IReadOnlyList (+22 more)
+Cohesion: 0.06
+Nodes (35): DbContext, IConfigurationRoot, IDesignTimeDbContextFactory, MasterDbContextFactory, TenantDesignTimeDbContextFactory, DbSet, ModelBuilder, MasterDbContext (+27 more)
 
-### Community 1 - "User"
+### Community 1 - "TenantDbContext"
 Cohesion: 0.10
-Nodes (22): ICollection, DbSet, ModelBuilder, string, TenantDbContext, DateTime, Guid, LoginLog (+14 more)
+Nodes (22): DbSet, ModelBuilder, string, TenantDbContext, DateTime, Guid, ICollection, LoginLog (+14 more)
 
-### Community 2 - "SchoolManagement.DAL.Context"
-Cohesion: 0.08
-Nodes (27): SchoolManagement.BLL.Interfaces, SchoolManagement.DAL.UnitOfWork, SchoolManagement.BLL.DTOs.Tenant, SchoolManagement.DAL.Entities.Master, SchoolManagement.Common.Constants, SchoolManagement.Common.Wrappers, SchoolManagement.BLL.Settings, SchoolManagement.BLL.DTOs.School (+19 more)
+### Community 2 - "SchoolManagement.DAL.Entities.Tenant"
+Cohesion: 0.06
+Nodes (34): SchoolManagement.BLL.Interfaces, SchoolManagement.DAL.UnitOfWork, SchoolManagement.BLL.Mappings, SchoolManagement.BLL.DTOs.Tenant, SchoolManagement.DAL.Entities.Master, SchoolManagement.Common.Constants, SchoolManagement.Common.Wrappers, SchoolManagement.BLL.Settings (+26 more)
 
 ### Community 3 - "UnitOfWork"
 Cohesion: 0.09
-Nodes (16): bool, HashSet, HttpContext, ILogger, RequestDelegate, Task, TenantResolutionMiddleware, IConfiguration (+8 more)
+Nodes (18): bool, IDbContextTransaction, HashSet, HttpContext, ILogger, RequestDelegate, Task, TenantResolutionMiddleware (+10 more)
 
-### Community 4 - "UserProfileDto"
-Cohesion: 0.09
-Nodes (35): AllowAnonymous, IsSuperAdmin, ActionResult, Authorize, CancellationToken, Guid, HttpGet, HttpPost (+27 more)
+### Community 4 - ".SaveTenantChangesAsync"
+Cohesion: 0.07
+Nodes (45): ExpiresAt, IEnumerable, IsSuperAdmin, ActionResult, AllowAnonymous, Authorize, CancellationToken, Guid (+37 more)
 
 ### Community 5 - "SchoolManagement.BLL"
 Cohesion: 0.06
 Nodes (36): BCrypt.Net-Next (4.2.0), FluentValidation (12.1.1), FluentValidation.AspNetCore (11.3.1), Microsoft.AspNetCore.Authentication.JwtBearer (10.0.10), Microsoft.AspNetCore.Http.Abstractions (2.3.11), Microsoft.EntityFrameworkCore.Relational (10.0.10), Microsoft.EntityFrameworkCore.Tools (10.0.10), Microsoft.Extensions.Configuration.Abstractions (10.0.10) (+28 more)
 
-### Community 6 - ".GetAll"
-Cohesion: 0.13
-Nodes (22): ControllerBase, ActionResult, Authorize, CancellationToken, HttpDelete, HttpGet, HttpPost, HttpPut (+14 more)
+### Community 6 - "IUnitOfWork"
+Cohesion: 0.08
+Nodes (28): IAsyncDisposable, IServiceScopeFactory, DateTime, Guid, BrandingSettingsDto, CreateTenantAdminDto, CreateTenantDto, FeatureSettingsDto (+20 more)
 
-### Community 7 - "InitialMaster"
-Cohesion: 0.07
-Nodes (17): SchoolManagement.DAL.Migrations.Master, SchoolManagement.DAL.Migrations.Tenant, Migration, ModelSnapshot, MigrationBuilder, ModelBuilder, InitialMaster, MigrationBuilder (+9 more)
+### Community 7 - "SchoolManagement.DAL.Migrations.Tenant"
+Cohesion: 0.06
+Nodes (18): SchoolManagement.DAL.Migrations.Master, SchoolManagement.DAL.Migrations.Tenant, Migration, MigrationBuilder, ModelBuilder, InitialMaster, MigrationBuilder, ModelBuilder (+10 more)
 
 ### Community 8 - "StorageService"
-Cohesion: 0.15
-Nodes (15): ExpiresAt, IEnumerable, IMinioClient, DateTime, Guid, JwtHelper, CancellationToken, ILogger (+7 more)
+Cohesion: 0.35
+Nodes (6): IMinioClient, CancellationToken, ILogger, Stream, Task, StorageService
 
 ### Community 9 - "ApiResponse"
 Cohesion: 0.09
-Nodes (34): IActionResult, IFormFile, RequestSizeLimit, ActionResult, Authorize, CancellationToken, HttpDelete, HttpGet (+26 more)
+Nodes (45): ControllerBase, ActionResult, Authorize, CancellationToken, Guid, HttpDelete, HttpGet, HttpPost (+37 more)
 
 ### Community 10 - "School Management System — Foundation (Authentication + Multi-Tenancy)"
 Cohesion: 0.14
 Nodes (12): ahskbera_main.sql → SaaS Schema Format Mapping, Auth mapping, Conventions retained from ahskbera, Isolation model difference, Role IDs / prefixes (from `ahskbera_main.roles`), Architecture, Auth flow, Notes (+4 more)
 
 ### Community 11 - "AbstractValidator"
-Cohesion: 0.19
-Nodes (14): AbstractValidator, SchoolManagement.BLL.Validators, CreateTenantValidator, UpdateTenantSettingsValidator, HashSet, LoginValidator, RefreshTokenValidator, RegisterValidator (+6 more)
+Cohesion: 0.14
+Nodes (19): AbstractValidator, SchoolManagement.BLL.Validators, HashSet, CreateAdmissionValidator, UpdateAdmissionValidator, CreateTenantValidator, UpdateTenantSettingsValidator, LoginValidator (+11 more)
 
 ### Community 12 - "http"
 Cohesion: 0.18
 Nodes (10): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, launchBrowser, launchUrl, profiles (+2 more)
 
 ### Community 13 - "SchoolService"
-Cohesion: 0.09
-Nodes (26): Guid, IReadOnlyList, SchoolListResponseDto, SchoolResponseDto, CancellationToken, Stream, Task, IStorageService (+18 more)
+Cohesion: 0.06
+Nodes (44): BrandingSettings, DateTime, FeatureSettings, Guid, IReadOnlyList, SecuritySettings, BrandingSettings, CreateSchoolDto (+36 more)
 
 ### Community 14 - "AppException"
 Cohesion: 0.39
@@ -132,24 +141,40 @@ Cohesion: 0.48
 Nodes (6): int, string, AppConstants, Claims, Roles, StorageFolders
 
 ### Community 17 - ".SeedSuperAdminAsync"
-Cohesion: 0.24
-Nodes (6): IServiceProvider, ILogger, Task, StartupExtensions, PasswordHelper, WebApplication
+Cohesion: 0.38
+Nodes (5): IServiceProvider, ILogger, Task, StartupExtensions, WebApplication
 
-### Community 18 - "MasterDbContext"
-Cohesion: 0.13
-Nodes (12): DbContext, IConfigurationRoot, IDesignTimeDbContextFactory, MasterDbContextFactory, TenantDesignTimeDbContextFactory, DbSet, ModelBuilder, MasterDbContext (+4 more)
+### Community 18 - "OnlineAdmissionService"
+Cohesion: 0.06
+Nodes (49): Random, ActionResult, AllowAnonymous, Authorize, CancellationToken, Guid, HttpDelete, HttpGet (+41 more)
 
 ### Community 19 - "ServiceCollectionExtensions"
 Cohesion: 0.53
 Nodes (3): IServiceCollection, IConfiguration, ServiceCollectionExtensions
 
-### Community 20 - "SchoolRepository"
-Cohesion: 0.27
-Nodes (7): CancellationToken, Guid, IReadOnlyList, Items, Task, TotalCount, SchoolRepository
+### Community 20 - "IAdmissionLookupRepository"
+Cohesion: 0.07
+Nodes (35): AdmissionMappings, DateTime, Guid, ICollection, ClassEntity, DateTime, Guid, ICollection (+27 more)
 
 ### Community 22 - ".OnActionExecutionAsync"
 Cohesion: 0.33
 Nodes (5): ActionExecutingContext, ActionExecutionDelegate, IAsyncActionFilter, Task, ValidationFilter
+
+### Community 23 - "StudentService"
+Cohesion: 0.07
+Nodes (33): long, Guid, AdmissionLookupItemDto, NextRegisterNoDto, DateTime, Guid, CreateAdmissionDto, Guid (+25 more)
+
+### Community 24 - "OnlineAdmission"
+Cohesion: 0.12
+Nodes (21): DateTime, Guid, string, OnlineAdmission, OnlineAdmissionPaymentStatuses, OnlineAdmissionStatuses, CancellationToken, Guid (+13 more)
+
+### Community 25 - "Student"
+Cohesion: 0.13
+Nodes (19): DateTime, Guid, ICollection, Student, CancellationToken, Guid, IReadOnlyList, Items (+11 more)
+
+### Community 26 - "Guardian"
+Cohesion: 0.19
+Nodes (13): DateTime, Guid, Guardian, CancellationToken, Guid, IReadOnlyList, Task, GuardianRepository (+5 more)
 
 ## Knowledge Gaps
 - **54 isolated node(s):** `$schema`, `commandName`, `dotnetRunMessages`, `launchBrowser`, `launchUrl` (+49 more)
@@ -159,17 +184,17 @@ Nodes (5): ActionExecutingContext, ActionExecutionDelegate, IAsyncActionFilter, 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SchoolManagement.DAL.Context` connect `SchoolManagement.DAL.Context` to `MasterDbContext`, `InitialMaster`?**
-  _High betweenness centrality (0.123) - this node is a cross-community bridge._
-- **Why does `SchoolService` connect `SchoolService` to `ApiResponse`, `SchoolManagement.DAL.Context`, `MasterDbContext`?**
-  _High betweenness centrality (0.093) - this node is a cross-community bridge._
-- **Why does `Tenant` connect `Tenant` to `MasterDbContext`, `SchoolRepository`, `SchoolService`?**
-  _High betweenness centrality (0.077) - this node is a cross-community bridge._
+- **Why does `SchoolManagement.DAL.Context` connect `SchoolManagement.DAL.Entities.Tenant` to `Tenant`, `UnitOfWork`, `IUnitOfWork`, `SchoolManagement.DAL.Migrations.Tenant`?**
+  _High betweenness centrality (0.130) - this node is a cross-community bridge._
+- **Why does `OnlineAdmissionService` connect `OnlineAdmissionService` to `SchoolManagement.DAL.Entities.Tenant`, `UnitOfWork`, `IUnitOfWork`, `SchoolService`, `StudentService`?**
+  _High betweenness centrality (0.103) - this node is a cross-community bridge._
+- **Why does `TenantDbContext` connect `TenantDbContext` to `Tenant`, `SchoolManagement.DAL.Entities.Tenant`, `UnitOfWork`, `SchoolService`, `IAdmissionLookupRepository`, `OnlineAdmission`, `Student`, `Guardian`?**
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
 - **What connects `$schema`, `commandName`, `dotnetRunMessages` to the rest of the system?**
   _54 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Tenant` be split into smaller, more focused modules?**
-  _Cohesion score 0.08005427408412483 - nodes in this community are weakly interconnected._
-- **Should `User` be split into smaller, more focused modules?**
+  _Cohesion score 0.05980861244019139 - nodes in this community are weakly interconnected._
+- **Should `TenantDbContext` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
-- **Should `SchoolManagement.DAL.Context` be split into smaller, more focused modules?**
-  _Cohesion score 0.07909604519774012 - nodes in this community are weakly interconnected._
+- **Should `SchoolManagement.DAL.Entities.Tenant` be split into smaller, more focused modules?**
+  _Cohesion score 0.06368330464716007 - nodes in this community are weakly interconnected._

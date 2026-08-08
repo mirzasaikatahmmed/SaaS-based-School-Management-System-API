@@ -63,5 +63,6 @@ public static class AppConstants
         public const string Reports = "reports";
         public const string Students = "students";
         public const string Guardians = "guardians";
+        public const string Imports = "imports";
     }
 }

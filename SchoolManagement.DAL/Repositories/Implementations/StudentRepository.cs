@@ -30,6 +30,7 @@ public class StudentRepository : IStudentRepository
             .Include(s => s.Room)
             .Include(s => s.Guardians)
             .Include(s => s.User)
+            .Include(s => s.DeactivateReasonRef)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
@@ -39,7 +40,11 @@ public class StudentRepository : IStudentRepository
             .Include(s => s.Class)
             .Include(s => s.Section)
             .Include(s => s.Category)
+            .Include(s => s.TransportRoute)
+            .Include(s => s.Hostel)
+            .Include(s => s.Room)
             .Include(s => s.Guardians)
+            .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
     }
 
@@ -58,10 +63,15 @@ public class StudentRepository : IStudentRepository
             .Include(s => s.Section)
             .Include(s => s.Category)
             .Include(s => s.Guardians)
+            .Include(s => s.User)
+            .Include(s => s.DeactivateReasonRef)
             .AsQueryable();
 
         if (filter.IsActive.HasValue)
             query = query.Where(s => s.IsActive == filter.IsActive.Value);
+
+        if (filter.IsLoginActive.HasValue)
+            query = query.Where(s => s.User.Active == filter.IsLoginActive.Value);
 
         if (filter.AcademicYear.HasValue)
             query = query.Where(s => s.AcademicYear == filter.AcademicYear.Value);
@@ -79,25 +89,82 @@ public class StudentRepository : IStudentRepository
         {
             var term = filter.Search.Trim().ToLowerInvariant();
             query = query.Where(s =>
+                (s.FirstName + " " + (s.LastName ?? "")).ToLower().Contains(term) ||
                 s.FirstName.ToLower().Contains(term) ||
                 (s.LastName != null && s.LastName.ToLower().Contains(term)) ||
                 s.RegisterNo.ToLower().Contains(term) ||
                 (s.Roll != null && s.Roll.ToLower().Contains(term)) ||
                 (s.MobileNo != null && s.MobileNo.Contains(term)) ||
-                (s.Email != null && s.Email.ToLower().Contains(term)));
+                (s.Email != null && s.Email.ToLower().Contains(term)) ||
+                s.Guardians.Any(g => g.MobileNo.ToLower().Contains(term)));
         }
 
         var total = await query.CountAsync(cancellationToken);
         var page = filter.Page < 1 ? 1 : filter.Page;
-        var pageSize = filter.PageSize is < 1 or > 200 ? 20 : filter.PageSize;
+        var pageSize = filter.PageSize is < 1 or > 10_000 ? 20 : filter.PageSize;
+
+        query = ApplySort(query, filter.SortBy, filter.SortDir);
 
         var items = await query
-            .OrderByDescending(s => s.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         return (items, total);
+    }
+
+    public async Task<IReadOnlyList<Student>> GetByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0)
+            return Array.Empty<Student>();
+
+        return await _context.Students
+            .Include(s => s.User)
+            .Where(s => idList.Contains(s.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<Student> ApplySort(IQueryable<Student> query, string? sortBy, string? sortDir)
+    {
+        var desc = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+        var key = (sortBy ?? "roll").Trim().ToLowerInvariant();
+
+        return key switch
+        {
+            "name" or "firstname" => desc
+                ? query.OrderByDescending(s => s.FirstName).ThenByDescending(s => s.LastName)
+                : query.OrderBy(s => s.FirstName).ThenBy(s => s.LastName),
+            "classname" or "class" => desc
+                ? query.OrderByDescending(s => s.Class!.Name)
+                : query.OrderBy(s => s.Class!.Name),
+            "sectionname" or "section" => desc
+                ? query.OrderByDescending(s => s.Section!.Name)
+                : query.OrderBy(s => s.Section!.Name),
+            "registerno" => desc
+                ? query.OrderByDescending(s => s.RegisterNo)
+                : query.OrderBy(s => s.RegisterNo),
+            "dateofbirth" or "dob" => desc
+                ? query.OrderByDescending(s => s.DateOfBirth)
+                : query.OrderBy(s => s.DateOfBirth),
+            "gender" => desc
+                ? query.OrderByDescending(s => s.Gender)
+                : query.OrderBy(s => s.Gender),
+            "isactive" => desc
+                ? query.OrderByDescending(s => s.IsActive)
+                : query.OrderBy(s => s.IsActive),
+            "isloginactive" => desc
+                ? query.OrderByDescending(s => s.User.Active)
+                : query.OrderBy(s => s.User.Active),
+            "createdat" => desc
+                ? query.OrderByDescending(s => s.CreatedAt)
+                : query.OrderBy(s => s.CreatedAt),
+            _ => desc
+                ? query.OrderByDescending(s => s.Roll)
+                : query.OrderBy(s => s.Roll)
+        };
     }
 
     public async Task<Student> AddAsync(Student student, CancellationToken cancellationToken = default)
@@ -118,6 +185,25 @@ public class StudentRepository : IStudentRepository
         CancellationToken cancellationToken = default)
     {
         var query = _context.Students.Where(s => s.RegisterNo == registerNo);
+        if (excludeId.HasValue)
+            query = query.Where(s => s.Id != excludeId.Value);
+        return await query.AnyAsync(cancellationToken);
+    }
+
+    public async Task<bool> RollExistsAsync(
+        string roll,
+        Guid classId,
+        Guid sectionId,
+        int academicYear,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Students.Where(s =>
+            s.Roll == roll &&
+            s.ClassId == classId &&
+            s.SectionId == sectionId &&
+            s.AcademicYear == academicYear &&
+            s.IsActive);
         if (excludeId.HasValue)
             query = query.Where(s => s.Id != excludeId.Value);
         return await query.AnyAsync(cancellationToken);

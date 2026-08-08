@@ -58,6 +58,46 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("classes", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.DeactivateReason", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Reason")
+                        .IsUnique();
+
+                    b.ToTable("deactivate_reasons", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Guardian", b =>
                 {
                     b.Property<Guid>("Id")
@@ -69,6 +109,21 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Property<string>("Address")
                         .HasColumnType("text")
                         .HasColumnName("address");
+
+                    b.Property<string>("AlternativeParentMobileNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("alternative_parent_mobile");
+
+                    b.Property<string>("AlternativeParentName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("alternative_parent_name");
+
+                    b.Property<string>("AlternativeParentRelation")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("alternative_parent_relation");
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
@@ -91,6 +146,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
+                    b.Property<string>("FacebookUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("facebook_url");
+
                     b.Property<string>("FatherName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -100,11 +160,28 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("income");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsLoginActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_login_active");
+
                     b.Property<bool>("IsPrimary")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_primary");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("linkedin_url");
 
                     b.Property<string>("MobileNo")
                         .IsRequired()
@@ -133,6 +210,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("character varying(500)")
                         .HasColumnName("profile_picture_url");
 
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("reference_no");
+
                     b.Property<string>("Relation")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -144,9 +226,14 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("character varying(100)")
                         .HasColumnName("state");
 
-                    b.Property<Guid>("StudentId")
+                    b.Property<Guid?>("StudentId")
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
+
+                    b.Property<string>("TwitterUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("twitter_url");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -159,6 +246,9 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReferenceNo")
+                        .IsUnique();
 
                     b.HasIndex("StudentId");
 
@@ -235,6 +325,138 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("hostel_rooms", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("FailedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failed_count");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("FileUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("file_url");
+
+                    b.Property<Guid>("ImportedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imported_by");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateTime>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("SuccessCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("success_count");
+
+                    b.Property<int>("TotalRows")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_rows");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("SectionId");
+
+                    b.ToTable("import_batches", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ImportBatchRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
+
+                    b.Property<string>("RawData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("raw_data");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("row_number");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("import_batch_rows", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LoginLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -280,6 +502,209 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.HasIndex("UserId");
 
                     b.ToTable("login_log", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.OnlineAdmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("academic_year");
+
+                    b.Property<DateTime>("ApplyDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("apply_date")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("BirthRegistrationNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("birth_registration_number");
+
+                    b.Property<string>("BloodGroup")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("blood_group");
+
+                    b.Property<Guid?>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<string>("ClassName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("class_name");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("DeclineReason")
+                        .HasColumnType("text")
+                        .HasColumnName("decline_reason");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FatherName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("father_name");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("Gender")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("gender");
+
+                    b.Property<string>("GuardianEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("guardian_email");
+
+                    b.Property<string>("GuardianMobile")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("guardian_mobile");
+
+                    b.Property<string>("GuardianName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("guardian_name");
+
+                    b.Property<string>("GuardianRelation")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("guardian_relation");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("MobileNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("mobile_no");
+
+                    b.Property<string>("MotherName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("mother_name");
+
+                    b.Property<decimal?>("PaymentAmount")
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("payment_amount");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("payment_date");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("payment_reference");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Unpaid")
+                        .HasColumnName("payment_status");
+
+                    b.Property<string>("PermanentAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("permanent_address");
+
+                    b.Property<string>("PresentAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("present_address");
+
+                    b.Property<string>("PreviousSchoolName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("previous_school_name");
+
+                    b.Property<string>("PreviousSchoolQualification")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("previous_school_qualification");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("profile_picture_url");
+
+                    b.Property<string>("ReferenceNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("reference_no");
+
+                    b.Property<string>("Religion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("religion");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Apply")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("ReferenceNo")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("online_admissions", "tenant_template");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.RefreshToken", b =>
@@ -479,6 +904,22 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("date")
                         .HasColumnName("date_of_birth");
 
+                    b.Property<string>("DeactivateReason")
+                        .HasColumnType("text")
+                        .HasColumnName("deactivate_reason");
+
+                    b.Property<Guid?>("DeactivateReasonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deactivate_reason_id");
+
+                    b.Property<DateTime?>("DeactivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deactivated_at");
+
+                    b.Property<Guid?>("DeactivatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deactivated_by");
+
                     b.Property<string>("Email")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -610,6 +1051,8 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("ClassId");
+
+                    b.HasIndex("DeactivateReasonId");
 
                     b.HasIndex("HostelId");
 
@@ -806,8 +1249,7 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
                         .WithMany("Guardians")
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "User")
                         .WithMany()
@@ -830,6 +1272,43 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("Hostel");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ImportBatch", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ImportBatchRow", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ImportBatch", "Batch")
+                        .WithMany("Rows")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LoginLog", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "User")
@@ -839,6 +1318,23 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.OnlineAdmission", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.RefreshToken", b =>
@@ -875,6 +1371,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasForeignKey("ClassId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.DeactivateReason", "DeactivateReasonRef")
+                        .WithMany("Students")
+                        .HasForeignKey("DeactivateReasonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.Hostel", "Hostel")
                         .WithMany("Students")
                         .HasForeignKey("HostelId")
@@ -904,6 +1405,8 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("Category");
 
                     b.Navigation("Class");
+
+                    b.Navigation("DeactivateReasonRef");
 
                     b.Navigation("Hostel");
 
@@ -942,6 +1445,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("Students");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.DeactivateReason", b =>
+                {
+                    b.Navigation("Students");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Hostel", b =>
                 {
                     b.Navigation("Rooms");
@@ -952,6 +1460,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.HostelRoom", b =>
                 {
                     b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ImportBatch", b =>
+                {
+                    b.Navigation("Rows");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Role", b =>

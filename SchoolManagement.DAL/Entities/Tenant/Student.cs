@@ -43,6 +43,10 @@ public class Student
     public Guid? RoomId { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public string? DeactivateReason { get; set; }
+    public Guid? DeactivateReasonId { get; set; }
+    public DateTime? DeactivatedAt { get; set; }
+    public Guid? DeactivatedBy { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -53,5 +57,6 @@ public class Student
     public TransportRoute? TransportRoute { get; set; }
     public Hostel? Hostel { get; set; }
     public HostelRoom? Room { get; set; }
+    public DeactivateReason? DeactivateReasonRef { get; set; }
     public ICollection<Guardian> Guardians { get; set; } = new List<Guardian>();
 }

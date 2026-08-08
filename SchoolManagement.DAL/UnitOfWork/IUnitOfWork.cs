@@ -10,9 +10,14 @@ public interface IUnitOfWork : IAsyncDisposable
     IStudentRepository Students { get; }
     IGuardianRepository Guardians { get; }
     IAdmissionLookupRepository AdmissionLookups { get; }
+    IOnlineAdmissionRepository OnlineAdmissions { get; }
+    IImportRepository Imports { get; }
+    IStudentCategoryRepository StudentCategories { get; }
+    IDeactivateReasonRepository DeactivateReasons { get; }
     Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTenantTransactionAsync(CancellationToken cancellationToken = default);
+    void ClearTenantChangeTracker();
     Task<int> SaveMasterChangesAsync(CancellationToken cancellationToken = default);
     Task<int> SaveTenantChangesAsync(CancellationToken cancellationToken = default);
 }

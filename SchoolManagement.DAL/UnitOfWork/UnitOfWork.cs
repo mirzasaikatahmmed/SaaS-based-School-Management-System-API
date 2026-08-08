@@ -18,6 +18,10 @@ public class UnitOfWork : IUnitOfWork
     private IStudentRepository? _studentRepository;
     private IGuardianRepository? _guardianRepository;
     private IAdmissionLookupRepository? _admissionLookupRepository;
+    private IOnlineAdmissionRepository? _onlineAdmissionRepository;
+    private IImportRepository? _importRepository;
+    private IStudentCategoryRepository? _studentCategoryRepository;
+    private IDeactivateReasonRepository? _deactivateReasonRepository;
     private IDbContextTransaction? _tenantTransaction;
     private bool _disposed;
 
@@ -73,6 +77,42 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IOnlineAdmissionRepository OnlineAdmissions
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _onlineAdmissionRepository ??= new OnlineAdmissionRepository(_tenantContextDb!);
+        }
+    }
+
+    public IImportRepository Imports
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _importRepository ??= new ImportRepository(_tenantContextDb!);
+        }
+    }
+
+    public IStudentCategoryRepository StudentCategories
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentCategoryRepository ??= new StudentCategoryRepository(_tenantContextDb!);
+        }
+    }
+
+    public IDeactivateReasonRepository DeactivateReasons
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _deactivateReasonRepository ??= new DeactivateReasonRepository(_tenantContextDb!);
+        }
+    }
+
     public async Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default)
     {
         EnsureTenantDb();
@@ -103,6 +143,11 @@ public class UnitOfWork : IUnitOfWork
             await _tenantTransaction.DisposeAsync();
             _tenantTransaction = null;
         }
+    }
+
+    public void ClearTenantChangeTracker()
+    {
+        _tenantContextDb?.ChangeTracker.Clear();
     }
 
     public async Task<int> SaveMasterChangesAsync(CancellationToken cancellationToken = default)

@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using SchoolManagement.BLL.DTOs.Import;
+using SchoolManagement.BLL.DTOs.OnlineAdmission;
 using SchoolManagement.BLL.DTOs.Student;
 using SchoolManagement.BLL.Exceptions;
 using SchoolManagement.BLL.Helpers;
@@ -320,6 +322,392 @@ public class StudentService : IStudentService
             await _unitOfWork.RollbackTenantTransactionAsync(cancellationToken);
             throw;
         }
+    }
+
+    public async Task<Student> CreateFromOnlineAdmissionAsync(
+        OnlineAdmission application,
+        ApproveAdmissionDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(_tenantContext.SchemaName))
+            throw new AppException("Tenant context is required to create a student from online admission.", 400);
+
+        await EnsureReadyAsync(cancellationToken);
+
+        if (!application.ClassId.HasValue)
+            throw new AppException("Online application has no class assigned.", 400);
+
+        var sectionId = dto.SectionId;
+        if (!sectionId.HasValue)
+        {
+            var sections = await _unitOfWork.AdmissionLookups.GetSectionsByClassIdAsync(
+                application.ClassId.Value, cancellationToken);
+            sectionId = sections.FirstOrDefault()?.Id
+                ?? throw new AppException("No section found for the selected class. Create a section before approving.", 400);
+        }
+        else
+        {
+            var section = await _unitOfWork.AdmissionLookups.GetSectionByIdAsync(sectionId.Value, cancellationToken)
+                ?? throw new AppException("Invalid SectionId.", 400);
+            if (section.ClassId != application.ClassId.Value)
+                throw new AppException("SectionId does not belong to the application class.", 400);
+        }
+
+        var registerNo = string.IsNullOrWhiteSpace(dto.RegisterNo)
+            ? (await GetNextRegisterNoAsync(application.AcademicYear, cancellationToken)).RegisterNo
+            : dto.RegisterNo.Trim();
+
+        if (await _unitOfWork.Students.RegisterNoExistsAsync(registerNo, null, cancellationToken))
+            throw new ConflictException($"Register number '{registerNo}' already exists.");
+
+        var username = dto.AdminUsername.Trim().ToLowerInvariant();
+        if (await _unitOfWork.Users.UsernameExistsAsync(username, cancellationToken))
+            throw new ConflictException($"Username '{username}' already exists.");
+
+        var email = string.IsNullOrWhiteSpace(application.Email)
+            ? $"{username}@students.local"
+            : application.Email.Trim().ToLowerInvariant();
+
+        if (await _unitOfWork.Users.EmailExistsAsync(email, cancellationToken))
+            throw new ConflictException($"Email '{email}' already exists.");
+
+        var studentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Student, cancellationToken)
+            ?? throw new AppException("Student role is not seeded in this tenant.", 500);
+
+        var studentUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            Username = username,
+            Password = PasswordHelper.HashPassword(dto.AdminPassword),
+            FirstName = application.FirstName.Trim(),
+            LastName = application.LastName?.Trim() ?? string.Empty,
+            Mobileno = application.MobileNo,
+            Photo = application.ProfilePictureUrl,
+            Active = true,
+            IsEmailVerified = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _unitOfWork.Users.AddAsync(studentUser, cancellationToken);
+        await _unitOfWork.Users.AddUserRoleAsync(new UserRole
+        {
+            UserId = studentUser.Id,
+            RoleId = studentRole.Id
+        }, cancellationToken);
+
+        var student = new Student
+        {
+            Id = Guid.NewGuid(),
+            UserId = studentUser.Id,
+            RegisterNo = registerNo,
+            Roll = dto.Roll?.Trim(),
+            AcademicYear = application.AcademicYear,
+            AdmissionDate = DateTime.UtcNow.Date,
+            ClassId = application.ClassId,
+            SectionId = sectionId,
+            FirstName = application.FirstName.Trim(),
+            LastName = application.LastName?.Trim(),
+            Gender = application.Gender,
+            BloodGroup = application.BloodGroup,
+            DateOfBirth = application.DateOfBirth?.Date,
+            Religion = string.IsNullOrWhiteSpace(application.Religion) ? "Not Specified" : application.Religion,
+            MobileNo = application.MobileNo,
+            Email = string.IsNullOrWhiteSpace(application.Email) ? null : application.Email.Trim().ToLowerInvariant(),
+            PresentAddress = application.PresentAddress,
+            PermanentAddress = application.PermanentAddress,
+            BirthRegistrationNumber = application.BirthRegistrationNumber,
+            ProfilePictureUrl = application.ProfilePictureUrl,
+            PreviousSchoolName = application.PreviousSchoolName,
+            PreviousSchoolQualification = application.PreviousSchoolQualification,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _unitOfWork.Students.AddAsync(student, cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(application.GuardianName) ||
+            !string.IsNullOrWhiteSpace(application.GuardianMobile))
+        {
+            await _unitOfWork.Guardians.AddAsync(new Guardian
+            {
+                Id = Guid.NewGuid(),
+                StudentId = student.Id,
+                Name = string.IsNullOrWhiteSpace(application.GuardianName)
+                    ? (application.FatherName ?? "Guardian")
+                    : application.GuardianName.Trim(),
+                Relation = string.IsNullOrWhiteSpace(application.GuardianRelation)
+                    ? "Guardian"
+                    : application.GuardianRelation.Trim(),
+                FatherName = application.FatherName,
+                MotherName = application.MotherName,
+                MobileNo = string.IsNullOrWhiteSpace(application.GuardianMobile)
+                    ? application.MobileNo
+                    : application.GuardianMobile.Trim(),
+                Email = application.GuardianEmail,
+                IsPrimary = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }, cancellationToken);
+        }
+
+        return student;
+    }
+
+    public async Task<Student> CreateFromImportRowAsync(
+        Guid classId,
+        Guid sectionId,
+        StudentImportRowDto row,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(_tenantContext.SchemaName))
+            throw new AppException("Tenant context is required for student import.", 400);
+
+        await EnsureReadyAsync(cancellationToken);
+
+        var registerNo = row.RegisterNo!.Trim();
+        if (!int.TryParse(row.AcademicYear, out var academicYear))
+            throw new AppException("AcademicYear must be numeric.", 400);
+
+        if (!DateTime.TryParseExact(row.AdmissionDate, "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var admissionDate))
+            throw new AppException("AdmissionDate must be in format Y-m-d (e.g. 2026-08-09).", 400);
+
+        DateTime? dob = null;
+        if (!string.IsNullOrWhiteSpace(row.DateOfBirth))
+        {
+            if (!DateTime.TryParseExact(row.DateOfBirth, "yyyy-MM-dd",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var parsedDob))
+                throw new AppException("DateOfBirth must be in format Y-m-d.", 400);
+            dob = parsedDob.Date;
+        }
+
+        Guid? categoryId = null;
+        if (!string.IsNullOrWhiteSpace(row.CategoryId))
+        {
+            if (!Guid.TryParse(row.CategoryId, out var catId))
+                throw new AppException("CategoryId must be a valid GUID.", 400);
+            _ = await _unitOfWork.AdmissionLookups.GetCategoryByIdAsync(catId, cancellationToken)
+                ?? throw new AppException("CategoryId does not exist.", 400);
+            categoryId = catId;
+        }
+
+        Guid? transportRouteId = null;
+        if (!string.IsNullOrWhiteSpace(row.TransportRoute))
+        {
+            var routes = await _unitOfWork.AdmissionLookups.GetTransportRoutesAsync(cancellationToken);
+            var route = routes.FirstOrDefault(r =>
+                r.Name.Equals(row.TransportRoute.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (route is null)
+                throw new AppException($"TransportRoute '{row.TransportRoute}' not found.", 400);
+            transportRouteId = route.Id;
+        }
+
+        Guid? hostelId = null;
+        Guid? roomId = null;
+        if (!string.IsNullOrWhiteSpace(row.HostelName))
+        {
+            var hostels = await _unitOfWork.AdmissionLookups.GetHostelsAsync(cancellationToken);
+            var hostel = hostels.FirstOrDefault(h =>
+                h.Name.Equals(row.HostelName.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (hostel is null)
+                throw new AppException($"HostelName '{row.HostelName}' not found.", 400);
+            hostelId = hostel.Id;
+
+            if (!string.IsNullOrWhiteSpace(row.RoomName))
+            {
+                var rooms = await _unitOfWork.AdmissionLookups.GetHostelRoomsAsync(hostel.Id, cancellationToken);
+                var room = rooms.FirstOrDefault(r =>
+                    r.Name.Equals(row.RoomName.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (room is null)
+                    throw new AppException($"RoomName '{row.RoomName}' not found for hostel.", 400);
+                roomId = room.Id;
+            }
+        }
+
+        var username = string.IsNullOrWhiteSpace(row.Username)
+            ? Helpers.CsvImportHelper.GenerateUsername(row.FirstName!, row.LastName, registerNo)
+            : row.Username.Trim().ToLowerInvariant();
+
+        var password = string.IsNullOrWhiteSpace(row.Password)
+            ? Helpers.CsvImportHelper.GenerateDefaultPassword(registerNo)
+            : row.Password;
+
+        if (await _unitOfWork.Users.UsernameExistsAsync(username, cancellationToken))
+            throw new ConflictException($"Username '{username}' already exists.");
+
+        var email = string.IsNullOrWhiteSpace(row.Email)
+            ? $"{username}@students.local"
+            : row.Email.Trim().ToLowerInvariant();
+
+        if (await _unitOfWork.Users.EmailExistsAsync(email, cancellationToken))
+            throw new ConflictException($"Email '{email}' already exists.");
+
+        var studentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Student, cancellationToken)
+            ?? throw new AppException("Student role is not seeded.", 500);
+        var parentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Parent, cancellationToken)
+            ?? throw new AppException("Parent role is not seeded.", 500);
+
+        var studentUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            Username = username,
+            Password = PasswordHelper.HashPassword(password),
+            FirstName = row.FirstName!.Trim(),
+            LastName = row.LastName?.Trim() ?? string.Empty,
+            Mobileno = row.MobileNo,
+            Active = true,
+            IsEmailVerified = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _unitOfWork.Users.AddAsync(studentUser, cancellationToken);
+        await _unitOfWork.Users.AddUserRoleAsync(new UserRole
+        {
+            UserId = studentUser.Id,
+            RoleId = studentRole.Id
+        }, cancellationToken);
+
+        var student = new Student
+        {
+            Id = Guid.NewGuid(),
+            UserId = studentUser.Id,
+            RegisterNo = registerNo,
+            Roll = row.Roll?.Trim(),
+            AcademicYear = academicYear,
+            AdmissionDate = admissionDate.Date,
+            ClassId = classId,
+            SectionId = sectionId,
+            CategoryId = categoryId,
+            FirstName = row.FirstName.Trim(),
+            LastName = row.LastName?.Trim(),
+            Gender = row.Gender,
+            BloodGroup = row.BloodGroup,
+            DateOfBirth = dob,
+            MotherTongue = row.MotherTongue,
+            Religion = string.IsNullOrWhiteSpace(row.Religion) ? "Not Specified" : row.Religion,
+            Caste = row.Caste,
+            MobileNo = row.MobileNo!.Trim(),
+            Email = string.IsNullOrWhiteSpace(row.Email) ? null : row.Email.Trim().ToLowerInvariant(),
+            City = row.City,
+            State = row.State,
+            PresentAddress = row.PresentAddress,
+            PermanentAddress = row.PermanentAddress,
+            FathersNidNumber = row.FathersNidNumber,
+            MothersNidNumber = row.MothersNidNumber,
+            BirthRegistrationNumber = row.BirthRegistrationNumber,
+            TransportRouteId = transportRouteId,
+            HostelId = hostelId,
+            RoomId = roomId,
+            PreviousSchoolName = row.PreviousSchoolName,
+            PreviousSchoolQualification = row.PreviousSchoolQualification,
+            Remarks = row.Remarks,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _unitOfWork.Students.AddAsync(student, cancellationToken);
+
+        var guardianUsername = row.GuardianUsername?.Trim();
+        var hasGuardianDetails = !string.IsNullOrWhiteSpace(row.GuardianName) ||
+                                 !string.IsNullOrWhiteSpace(row.GuardianMobile);
+
+        if (!string.IsNullOrWhiteSpace(guardianUsername) && !hasGuardianDetails)
+        {
+            var existingUser = await _unitOfWork.Users.GetByUsernameAsync(guardianUsername.ToLowerInvariant(), cancellationToken)
+                ?? throw new AppException($"GuardianUsername '{guardianUsername}' not found.", 400);
+
+            var existingGuardian = await _unitOfWork.Guardians.GetPrimaryByUserIdAsync(existingUser.Id, cancellationToken);
+            await _unitOfWork.Guardians.AddAsync(new Guardian
+            {
+                Id = Guid.NewGuid(),
+                StudentId = student.Id,
+                UserId = existingUser.Id,
+                Name = existingGuardian?.Name ?? existingUser.FirstName,
+                Relation = existingGuardian?.Relation ?? "Guardian",
+                FatherName = existingGuardian?.FatherName,
+                MotherName = existingGuardian?.MotherName,
+                Occupation = existingGuardian?.Occupation,
+                Income = existingGuardian?.Income,
+                Education = existingGuardian?.Education,
+                City = existingGuardian?.City,
+                State = existingGuardian?.State,
+                MobileNo = existingGuardian?.MobileNo ?? existingUser.Mobileno ?? row.MobileNo!,
+                Email = existingGuardian?.Email ?? existingUser.Email,
+                Address = existingGuardian?.Address,
+                ProfilePictureUrl = existingGuardian?.ProfilePictureUrl,
+                IsPrimary = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }, cancellationToken);
+        }
+        else if (hasGuardianDetails)
+        {
+            Guid? guardianUserId = null;
+            if (!string.IsNullOrWhiteSpace(row.GuardianUsername) && !string.IsNullOrWhiteSpace(row.GuardianPassword))
+            {
+                var gUsername = row.GuardianUsername.Trim().ToLowerInvariant();
+                if (await _unitOfWork.Users.UsernameExistsAsync(gUsername, cancellationToken))
+                    throw new ConflictException($"Guardian username '{gUsername}' already exists.");
+
+                var gEmail = string.IsNullOrWhiteSpace(row.GuardianEmail)
+                    ? $"{gUsername}@guardians.local"
+                    : row.GuardianEmail.Trim().ToLowerInvariant();
+
+                var nameParts = (row.GuardianName ?? "Guardian").Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                var guardianUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = gEmail,
+                    Username = gUsername,
+                    Password = PasswordHelper.HashPassword(row.GuardianPassword),
+                    FirstName = nameParts[0],
+                    LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty,
+                    Mobileno = row.GuardianMobile,
+                    Active = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.Users.AddAsync(guardianUser, cancellationToken);
+                await _unitOfWork.Users.AddUserRoleAsync(new UserRole
+                {
+                    UserId = guardianUser.Id,
+                    RoleId = parentRole.Id
+                }, cancellationToken);
+                guardianUserId = guardianUser.Id;
+            }
+
+            decimal? income = null;
+            if (!string.IsNullOrWhiteSpace(row.GuardianIncome) &&
+                decimal.TryParse(row.GuardianIncome, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var parsedIncome))
+                income = parsedIncome;
+
+            await _unitOfWork.Guardians.AddAsync(new Guardian
+            {
+                Id = Guid.NewGuid(),
+                StudentId = student.Id,
+                UserId = guardianUserId,
+                Name = (row.GuardianName ?? "Guardian").Trim(),
+                Relation = string.IsNullOrWhiteSpace(row.GuardianRelation) ? "Guardian" : row.GuardianRelation.Trim(),
+                FatherName = row.FatherName,
+                MotherName = row.MotherName,
+                Occupation = row.GuardianOccupation,
+                Income = income,
+                Education = row.GuardianEducation,
+                MobileNo = string.IsNullOrWhiteSpace(row.GuardianMobile) ? row.MobileNo! : row.GuardianMobile.Trim(),
+                Email = row.GuardianEmail,
+                Address = row.GuardianAddress,
+                IsPrimary = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }, cancellationToken);
+        }
+
+        return student;
     }
 
     public async Task<StudentResponseDto> UpdateAdmissionAsync(
