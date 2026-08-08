@@ -11,5 +11,3 @@ services:
   api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    volumes:
-      - ./SchoolManagement.API:/src/SchoolManagement.API:ro

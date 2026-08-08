@@ -40,9 +40,7 @@ services:
       retries: 3
 
   api:
-    build:
-      context: .
-      dockerfile: SchoolManagement.API/Dockerfile
+    image: mirzasaikatahmmed/saas-based-school-management-system-api:latest
     container_name: school_mgmt_api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
