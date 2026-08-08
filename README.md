@@ -137,4 +137,7 @@ Full system workflow (current + how to extend): [`docs/SYSTEM_WORKFLOW.md`](docs
 
 ## License
 
-Use and modify as needed for your deployment.
+**Proprietary — All Rights Reserved.**  
+You may **not** use this software for free or for any purpose without prior written permission. See [LICENSE](./LICENSE) and [SECURITY.md](./SECURITY.md).
+
+To request permission: contact the repository owner on GitHub.

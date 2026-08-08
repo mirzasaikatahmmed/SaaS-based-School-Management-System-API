@@ -1,0 +1,44 @@
+# Proprietary License — All Rights Reserved
+
+Copyright (c) 2026 Mirza Saikat Ahmmed. All rights reserved.
+
+## Summary
+
+This software and its associated documentation (the "Software") are **proprietary**.
+
+**You may not use, copy, modify, merge, publish, distribute, sublicense, sell, host, or commercially exploit this Software — free of charge or otherwise — without prior written permission from the copyright holder.**
+
+Open-source-style “free for anyone” rights are **not** granted.
+
+## Restricted without permission
+
+Without an explicit written license or agreement from the copyright holder, you may **not**:
+
+1. Use the Software in production, staging, or commercial projects  
+2. Deploy, host, or offer the Software as a service  
+3. Copy, fork, or redistribute the source or binaries for others’ use  
+4. Modify and redistribute derivative works  
+5. Remove or alter copyright, license, or attribution notices  
+6. Use the Software’s name, branding, or documentation to imply endorsement  
+
+## Viewing this repository
+
+Access to a public or private GitHub repository does **not** grant a license to use the Software. Browsing or starring the repository does not create usage rights.
+
+## How to request permission
+
+To request a commercial, evaluation, or other license:
+
+- **GitHub:** open an issue or contact the repository owner [@mirzasaikatahmmed](https://github.com/mirzasaikatahmmed)  
+- **Docker Hub / image use:** using published images also requires permission under this license unless a separate written agreement says otherwise  
+
+Approved use is valid only under the terms of a written agreement signed (or otherwise confirmed in writing) by the copyright holder.
+
+## No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE — WHETHER OR NOT USE WAS AUTHORIZED.
+
+## Contact
+
+Copyright holder: **Mirza Saikat Ahmmed**  
+Repository / contact via GitHub: https://github.com/mirzasaikatahmmed
