@@ -22,6 +22,29 @@ public class UnitOfWork : IUnitOfWork
     private IImportRepository? _importRepository;
     private IStudentCategoryRepository? _studentCategoryRepository;
     private IDeactivateReasonRepository? _deactivateReasonRepository;
+    private IDepartmentRepository? _departmentRepository;
+    private IDesignationRepository? _designationRepository;
+    private IEmployeeRepository? _employeeRepository;
+    private ISalaryTemplateRepository? _salaryTemplateRepository;
+    private ISalaryAssignmentRepository? _salaryAssignmentRepository;
+    private ISalaryPaymentRepository? _salaryPaymentRepository;
+    private IAdvanceSalaryRepository? _advanceSalaryRepository;
+    private ILeaveCategoryRepository? _leaveCategoryRepository;
+    private ILeaveRequestRepository? _leaveRequestRepository;
+    private IAwardRepository? _awardRepository;
+    private IClassControlRepository? _classControlRepository;
+    private ISectionControlRepository? _sectionControlRepository;
+    private IClassTeacherRepository? _classTeacherRepository;
+    private ISubjectRepository? _subjectRepository;
+    private IClassSubjectAssignmentRepository? _classSubjectAssignmentRepository;
+    private IClassScheduleRepository? _classScheduleRepository;
+    private IStudentPromotionRepository? _studentPromotionRepository;
+    private IExamTermRepository? _examTermRepository;
+    private IExamHallRepository? _examHallRepository;
+    private IMarkDistributionRepository? _markDistributionRepository;
+    private IExamRepository? _examRepository;
+    private IExamScheduleRepository? _examScheduleRepository;
+    private IMarkEntryRepository? _markEntryRepository;
     private IDbContextTransaction? _tenantTransaction;
     private bool _disposed;
 
@@ -110,6 +133,213 @@ public class UnitOfWork : IUnitOfWork
         {
             EnsureTenantDb();
             return _deactivateReasonRepository ??= new DeactivateReasonRepository(_tenantContextDb!);
+        }
+    }
+
+    public IDepartmentRepository Departments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _departmentRepository ??= new DepartmentRepository(_tenantContextDb!);
+        }
+    }
+
+    public IDesignationRepository Designations
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _designationRepository ??= new DesignationRepository(_tenantContextDb!);
+        }
+    }
+
+    public IEmployeeRepository Employees
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _employeeRepository ??= new EmployeeRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISalaryTemplateRepository SalaryTemplates
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _salaryTemplateRepository ??= new SalaryTemplateRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISalaryAssignmentRepository SalaryAssignments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _salaryAssignmentRepository ??= new SalaryAssignmentRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISalaryPaymentRepository SalaryPayments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _salaryPaymentRepository ??= new SalaryPaymentRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAdvanceSalaryRepository AdvanceSalaries
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _advanceSalaryRepository ??= new AdvanceSalaryRepository(_tenantContextDb!);
+        }
+    }
+
+    public ILeaveCategoryRepository LeaveCategories
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _leaveCategoryRepository ??= new LeaveCategoryRepository(_tenantContextDb!);
+        }
+    }
+
+    public ILeaveRequestRepository LeaveRequests
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _leaveRequestRepository ??= new LeaveRequestRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAwardRepository Awards
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _awardRepository ??= new AwardRepository(_tenantContextDb!);
+        }
+    }
+
+    public IClassControlRepository ClassControls
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _classControlRepository ??= new ClassControlRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISectionControlRepository SectionControls
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _sectionControlRepository ??= new SectionControlRepository(_tenantContextDb!);
+        }
+    }
+
+    public IClassTeacherRepository ClassTeachers
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _classTeacherRepository ??= new ClassTeacherRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISubjectRepository Subjects
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _subjectRepository ??= new SubjectRepository(_tenantContextDb!);
+        }
+    }
+
+    public IClassSubjectAssignmentRepository ClassSubjectAssignments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _classSubjectAssignmentRepository ??= new ClassSubjectAssignmentRepository(_tenantContextDb!);
+        }
+    }
+
+    public IClassScheduleRepository ClassSchedules
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _classScheduleRepository ??= new ClassScheduleRepository(_tenantContextDb!);
+        }
+    }
+
+    public IStudentPromotionRepository StudentPromotions
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentPromotionRepository ??= new StudentPromotionRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamTermRepository ExamTerms
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examTermRepository ??= new ExamTermRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamHallRepository ExamHalls
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examHallRepository ??= new ExamHallRepository(_tenantContextDb!);
+        }
+    }
+
+    public IMarkDistributionRepository MarkDistributions
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _markDistributionRepository ??= new MarkDistributionRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamRepository Exams
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examRepository ??= new ExamRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamScheduleRepository ExamSchedules
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examScheduleRepository ??= new ExamScheduleRepository(_tenantContextDb!);
+        }
+    }
+
+    public IMarkEntryRepository MarkEntries
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _markEntryRepository ??= new MarkEntryRepository(_tenantContextDb!);
         }
     }
 

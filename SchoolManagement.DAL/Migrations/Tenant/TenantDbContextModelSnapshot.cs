@@ -23,6 +23,159 @@ namespace SchoolManagement.DAL.Migrations.Tenant
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.AdvanceSalaryRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("AppliedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_on")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("DeductMonth")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("deduct_month");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RejectReason")
+                        .HasColumnType("text")
+                        .HasColumnName("reject_reason");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeductMonth");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ReviewedBy");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("advance_salary_requests", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Award", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AwardName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("award_name");
+
+                    b.Property<string>("AwardReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("award_reason");
+
+                    b.Property<decimal?>("CashPrice")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("cash_price");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("GiftItem")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("gift_item");
+
+                    b.Property<DateTime>("GivenDate")
+                        .HasColumnType("date")
+                        .HasColumnName("given_date");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("GivenDate");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("awards", "tenant_template", t =>
+                        {
+                            t.HasCheckConstraint("chk_award_recipient", "(employee_id IS NOT NULL AND student_id IS NULL) OR (employee_id IS NULL AND student_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -56,6 +209,245 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.HasKey("Id");
 
                     b.ToTable("classes", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("day");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("ClassId", "SectionId");
+
+                    b.HasIndex("ClassId", "SectionId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("class_schedules", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSchedulePeriod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("ClassRoom")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("class_room");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<TimeSpan>("EndingTime")
+                        .HasColumnType("time")
+                        .HasColumnName("ending_time");
+
+                    b.Property<bool>("IsBreak")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_break");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<TimeSpan>("StartingTime")
+                        .HasColumnType("time")
+                        .HasColumnName("starting_time");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("class_schedule_periods", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSection", b =>
+                {
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.HasKey("ClassId", "SectionId");
+
+                    b.HasIndex("SectionId");
+
+                    b.ToTable("class_sections", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("ClassId", "SectionId")
+                        .IsUnique();
+
+                    b.ToTable("class_subject_assignments", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignmentItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assignment_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("AssignmentId", "SubjectId")
+                        .IsUnique();
+
+                    b.ToTable("class_subject_assignment_items", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassTeacherAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("ClassId", "SectionId")
+                        .IsUnique();
+
+                    b.ToTable("class_teacher_allocations", "tenant_template");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.DeactivateReason", b =>
@@ -96,6 +488,714 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .IsUnique();
 
                     b.ToTable("deactivate_reasons", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Department", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("departments", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Designation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("designations", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Employee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AccountNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("account_no");
+
+                    b.Property<string>("BankAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("bank_address");
+
+                    b.Property<string>("BankBranch")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("bank_branch");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("bank_name");
+
+                    b.Property<string>("BloodGroup")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("blood_group");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("department_id");
+
+                    b.Property<Guid?>("DesignationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("designation_id");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("ExperienceDetails")
+                        .HasColumnType("text")
+                        .HasColumnName("experience_details");
+
+                    b.Property<string>("FacebookUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("facebook_url");
+
+                    b.Property<string>("Gender")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("gender");
+
+                    b.Property<string>("HolderName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("holder_name");
+
+                    b.Property<string>("IfscCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ifsc_code");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime>("JoiningDate")
+                        .HasColumnType("date")
+                        .HasColumnName("joining_date");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("linkedin_url");
+
+                    b.Property<string>("MobileNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("mobile_no");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NidNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nid_number");
+
+                    b.Property<string>("PermanentAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("permanent_address");
+
+                    b.Property<string>("PresentAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("present_address");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("profile_picture_url");
+
+                    b.Property<string>("Qualification")
+                        .HasColumnType("text")
+                        .HasColumnName("qualification");
+
+                    b.Property<string>("Religion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("religion");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<bool>("SkipBankDetails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("skip_bank_details");
+
+                    b.Property<string>("StaffId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("TotalExperience")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("total_experience");
+
+                    b.Property<string>("TwitterUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("twitter_url");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("DesignationId");
+
+                    b.HasIndex("Role");
+
+                    b.HasIndex("StaffId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("employees", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("FailedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failed_count");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("FileUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("file_url");
+
+                    b.Property<Guid>("ImportedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imported_by");
+
+                    b.Property<DateTime>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("SuccessCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("success_count");
+
+                    b.Property<int>("TotalRows")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_rows");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("employee_import_batches", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeImportBatchRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
+
+                    b.Property<string>("RawData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("raw_data");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("row_number");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("employee_import_batch_rows", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeSalaryAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("AssignedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_by");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedBy");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique();
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("employee_salary_assignments", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Exam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("ExamTermId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exam_term_id");
+
+                    b.Property<string>("ExamType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("exam_type");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_published");
+
+                    b.Property<bool>("IsResultPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_result_published");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("text")
+                        .HasColumnName("remarks");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamTermId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("exams", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamHall", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("HallNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("hall_no");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("NoOfSeats")
+                        .HasColumnType("integer")
+                        .HasColumnName("no_of_seats");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HallNo")
+                        .IsUnique();
+
+                    b.ToTable("exam_halls", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamMarkDistribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exam_id");
+
+                    b.Property<Guid>("MarkDistributionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mark_distribution_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarkDistributionId");
+
+                    b.HasIndex("ExamId", "MarkDistributionId")
+                        .IsUnique();
+
+                    b.ToTable("exam_mark_distributions", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exam_id");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("ExamId", "ClassId", "SectionId")
+                        .IsUnique();
+
+                    b.ToTable("exam_schedules", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamScheduleSubject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<TimeSpan>("EndingTime")
+                        .HasColumnType("time")
+                        .HasColumnName("ending_time");
+
+                    b.Property<DateTime>("ExamDate")
+                        .HasColumnType("date")
+                        .HasColumnName("exam_date");
+
+                    b.Property<Guid?>("HallId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("hall_id");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<TimeSpan>("StartingTime")
+                        .HasColumnType("time")
+                        .HasColumnName("starting_time");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<int?>("WrittenFullMark")
+                        .HasColumnType("integer")
+                        .HasColumnName("written_full_mark");
+
+                    b.Property<int?>("WrittenPassMark")
+                        .HasColumnType("integer")
+                        .HasColumnName("written_pass_mark");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HallId");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("exam_schedule_subjects", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("exam_terms", "tenant_template");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Guardian", b =>
@@ -457,6 +1557,143 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("import_batch_rows", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LeaveCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("days");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("leave_categories", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("ApplyDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("apply_date")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("attachment_url");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("text")
+                        .HasColumnName("comments");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("DateOfEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_end");
+
+                    b.Property<DateTime>("DateOfStart")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_start");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("days");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<Guid>("LeaveCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leave_category_id");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LeaveCategoryId");
+
+                    b.HasIndex("ReviewedBy");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("DateOfStart", "DateOfEnd");
+
+                    b.ToTable("leave_requests", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LoginLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -502,6 +1739,128 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.HasIndex("UserId");
 
                     b.ToTable("login_log", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.MarkDistribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("mark_distributions", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.MarkEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exam_id");
+
+                    b.Property<bool>("IsAbsent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_absent");
+
+                    b.Property<decimal?>("McqMark")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("mcq_mark");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<decimal?>("TotalMark")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("total_mark");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<decimal?>("WrittenMark")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("written_mark");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("ExamId")
+                        .HasDatabaseName("idx_mark_entries_exam");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("idx_mark_entries_student");
+
+                    b.HasIndex("SubjectId")
+                        .HasDatabaseName("idx_mark_entries_subject");
+
+                    b.HasIndex("ExamId", "ClassId", "SectionId", "SubjectId", "StudentId")
+                        .IsUnique();
+
+                    b.ToTable("mark_entries", "tenant_template");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.OnlineAdmission", b =>
@@ -813,6 +2172,289 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("roles", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryAllowance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("Amount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("salary_allowances", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryDeduction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("Amount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("salary_deductions", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("AdvanceDeduction")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("advance_deduction");
+
+                    b.Property<decimal>("BasicSalary")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("basic_salary");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<decimal>("FinalAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("final_amount");
+
+                    b.Property<decimal>("NetSalary")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("net_salary");
+
+                    b.Property<decimal>("OvertimeAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("overtime_amount");
+
+                    b.Property<decimal>("OvertimeHours")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("overtime_hours");
+
+                    b.Property<Guid?>("PaidBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("paid_by");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("payment_date");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("payment_method");
+
+                    b.Property<string>("PaymentMonth")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)")
+                        .HasColumnName("payment_month");
+
+                    b.Property<string>("PaymentNote")
+                        .HasColumnType("text")
+                        .HasColumnName("payment_note");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Unpaid")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.Property<decimal>("TotalAllowance")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_allowance");
+
+                    b.Property<decimal>("TotalDeduction")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_deduction");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("PaidBy");
+
+                    b.HasIndex("PaymentMonth");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("EmployeeId", "PaymentMonth")
+                        .IsUnique();
+
+                    b.ToTable("salary_payments", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("BasicSalary")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("basic_salary");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal>("NetSalary")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("net_salary");
+
+                    b.Property<decimal?>("OvertimeRatePerHour")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("overtime_rate_per_hour");
+
+                    b.Property<string>("SalaryGrade")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("salary_grade");
+
+                    b.Property<decimal>("TotalAllowance")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_allowance");
+
+                    b.Property<decimal>("TotalDeduction")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_deduction");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("salary_templates", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Section", b =>
                 {
                     b.Property<Guid>("Id")
@@ -821,7 +2463,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid>("ClassId")
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer")
+                        .HasColumnName("capacity");
+
+                    b.Property<Guid?>("ClassId")
                         .HasColumnType("uuid")
                         .HasColumnName("class_id");
 
@@ -1101,6 +2747,159 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("student_categories", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentPromotion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("CarryForwardDue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("carry_forward_due");
+
+                    b.Property<decimal>("CurrentDueAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("current_due_amount");
+
+                    b.Property<int>("FromAcademicYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_academic_year");
+
+                    b.Property<Guid?>("FromClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_class_id");
+
+                    b.Property<string>("FromRoll")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("from_roll");
+
+                    b.Property<Guid?>("FromSectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_section_id");
+
+                    b.Property<DateTime>("PromotedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("promoted_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("PromotedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promoted_by");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Promoted")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<int>("ToAcademicYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_academic_year");
+
+                    b.Property<Guid?>("ToClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_class_id");
+
+                    b.Property<string>("ToRoll")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("to_roll");
+
+                    b.Property<Guid?>("ToSectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_section_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromClassId");
+
+                    b.HasIndex("FromSectionId");
+
+                    b.HasIndex("PromotedBy");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ToClassId");
+
+                    b.HasIndex("ToSectionId");
+
+                    b.ToTable("student_promotions", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Subject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("author");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Theory")
+                        .HasColumnName("subject_type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("subjects", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.TransportRoute", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1244,6 +3043,320 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("user_roles", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.AdvanceSalaryRequest", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Reviewer");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Award", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSchedule", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSchedulePeriod", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassSchedule", "Schedule")
+                        .WithMany("Periods")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSection", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany("ClassSections")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany("ClassSections")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignment", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignmentItem", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignment", "Assignment")
+                        .WithMany("Items")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany("AssignmentItems")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassTeacherAllocation", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Employee", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Designation", "Designation")
+                        .WithMany("Employees")
+                        .HasForeignKey("DesignationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Designation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeImportBatchRow", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.EmployeeImportBatch", "Batch")
+                        .WithMany("Rows")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeSalaryAssignment", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", "Template")
+                        .WithMany("Assignments")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Exam", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ExamTerm", "ExamTerm")
+                        .WithMany("Exams")
+                        .HasForeignKey("ExamTermId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ExamTerm");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamMarkDistribution", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Exam", "Exam")
+                        .WithMany("MarkDistributions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.MarkDistribution", "MarkDistribution")
+                        .WithMany("ExamMarkDistributions")
+                        .HasForeignKey("MarkDistributionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("MarkDistribution");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamSchedule", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Exam", "Exam")
+                        .WithMany("Schedules")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamScheduleSubject", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ExamHall", "Hall")
+                        .WithMany()
+                        .HasForeignKey("HallId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ExamSchedule", "Schedule")
+                        .WithMany("Subjects")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Hall");
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("Subject");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Guardian", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
@@ -1309,6 +3422,32 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LeaveRequest", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.LeaveCategory", "LeaveCategory")
+                        .WithMany("LeaveRequests")
+                        .HasForeignKey("LeaveCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveCategory");
+
+                    b.Navigation("Reviewer");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LoginLog", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "User")
@@ -1318,6 +3457,49 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.MarkEntry", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Exam", "Exam")
+                        .WithMany("MarkEntries")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Section");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.OnlineAdmission", b =>
@@ -1348,13 +3530,60 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryAllowance", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", "Template")
+                        .WithMany("Allowances")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryDeduction", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", "Template")
+                        .WithMany("Deductions")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryPayment", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "PaidByUser")
+                        .WithMany()
+                        .HasForeignKey("PaidBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("PaidByUser");
+
+                    b.Navigation("Template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Section", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
                         .WithMany("Sections")
                         .HasForeignKey("ClassId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Class");
                 });
@@ -1419,6 +3648,52 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentPromotion", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "FromClass")
+                        .WithMany()
+                        .HasForeignKey("FromClassId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "FromSection")
+                        .WithMany()
+                        .HasForeignKey("FromSectionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "PromotedByUser")
+                        .WithMany()
+                        .HasForeignKey("PromotedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "ToClass")
+                        .WithMany()
+                        .HasForeignKey("ToClassId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "ToSection")
+                        .WithMany()
+                        .HasForeignKey("ToSectionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("FromClass");
+
+                    b.Navigation("FromSection");
+
+                    b.Navigation("PromotedByUser");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("ToClass");
+
+                    b.Navigation("ToSection");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.UserRole", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Tenant.Role", "Role")
@@ -1440,14 +3715,60 @@ namespace SchoolManagement.DAL.Migrations.Tenant
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassEntity", b =>
                 {
+                    b.Navigation("ClassSections");
+
                     b.Navigation("Sections");
 
                     b.Navigation("Students");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSchedule", b =>
+                {
+                    b.Navigation("Periods");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ClassSubjectAssignment", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.DeactivateReason", b =>
                 {
                     b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Department", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Designation", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.EmployeeImportBatch", b =>
+                {
+                    b.Navigation("Rows");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Exam", b =>
+                {
+                    b.Navigation("MarkDistributions");
+
+                    b.Navigation("MarkEntries");
+
+                    b.Navigation("Schedules");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamSchedule", b =>
+                {
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.ExamTerm", b =>
+                {
+                    b.Navigation("Exams");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Hostel", b =>
@@ -1467,13 +3788,34 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("Rows");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.LeaveCategory", b =>
+                {
+                    b.Navigation("LeaveRequests");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.MarkDistribution", b =>
+                {
+                    b.Navigation("ExamMarkDistributions");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Role", b =>
                 {
                     b.Navigation("UserRoles");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.SalaryTemplate", b =>
+                {
+                    b.Navigation("Allowances");
+
+                    b.Navigation("Assignments");
+
+                    b.Navigation("Deductions");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Section", b =>
                 {
+                    b.Navigation("ClassSections");
+
                     b.Navigation("Students");
                 });
 
@@ -1485,6 +3827,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentCategory", b =>
                 {
                     b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Subject", b =>
+                {
+                    b.Navigation("AssignmentItems");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.TransportRoute", b =>

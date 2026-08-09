@@ -31,7 +31,7 @@ public class AdmissionLookupRepository : IAdmissionLookupRepository
     public async Task<IReadOnlyList<Section>> GetSectionsByClassIdAsync(Guid classId, CancellationToken cancellationToken = default)
     {
         return await _context.Sections
-            .Where(s => s.ClassId == classId && s.IsActive)
+            .Where(s => s.IsActive && (s.ClassId == classId || s.ClassSections.Any(cs => cs.ClassId == classId)))
             .OrderBy(s => s.Name)
             .ToListAsync(cancellationToken);
     }

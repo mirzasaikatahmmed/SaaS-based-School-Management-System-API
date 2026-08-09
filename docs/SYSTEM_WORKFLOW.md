@@ -3,7 +3,7 @@
 > **Living document.** This describes the **currently implemented** end-to-end flow.
 > When new modules ship, update this file and the [module index](./MODULES.md).
 
-**Last updated:** 2026-08-09 · Modules 1–11 (Auth → Parent Login Deactivate)
+**Last updated:** 2026-08-09 · Modules 1–17 (Auth → Exam Master)
 
 ---
 
@@ -39,10 +39,15 @@ flowchart TB
 | Layer | What exists today |
 |-------|-------------------|
 | Platform | Super Admin auth, create/list schools & tenants, logos, settings, stats |
-| Tenant data | Users, roles, classes, sections, categories, students, guardians, online applications, import batches |
-| Storage | Per-school MinIO bucket; student/guardian/import objects + presigned URLs |
+| Tenant data | Users, roles, classes, sections, categories, students, guardians, employees, departments, designations, online applications, import batches |
+| Storage | Per-school MinIO bucket; student/guardian/employee/import objects + presigned URLs |
 | Student lifecycle | Admission · Online admit · CSV import · List · Deactivate · Login deactivate |
 | Parent lifecycle | Auto from admission · Standalone add · List · Login deactivate |
+| Employee lifecycle | Departments · Designations · Add/import staff · Role-tab list · Login deactivate |
+| Payroll | Salary templates · Assign grades · Monthly payment · My salary slip |
+| HR requests | Advance salary · Leave categories · Leave applications · Awards |
+| Academic | Classes · Sections · Subjects · Class teachers · Timetable · Promotion |
+| Exam Master | Terms · Halls · Mark distributions · Exam setup · Schedules · Mark entries |
 
 ---
 
@@ -134,6 +139,31 @@ flowchart TD
   PAR --> PME[Parent /api/parents/me]
   PAR --> PLGN[Parent Login Deactivate<br/>/api/parent-login-deactivate]
   PLGN -->|Bulk activate| PAR
+
+  START --> EMPPREP[Employee masters]
+  EMPPREP --> DEPT[/api/departments]
+  EMPPREP --> DESG[/api/designations]
+  DEPT --> EMP[Employees<br/>/api/employees]
+  DESG --> EMP
+  EMP --> EMPLIST[List by role tab]
+  EMP --> EMPIMP[CSV import]
+  EMP --> EMPLGN[Employee Login Deactivate<br/>/api/employee-login-deactivate]
+  EMP --> PAY[Payroll<br/>/api/payroll]
+  PAY --> TPL[Salary templates]
+  PAY --> ASN[Salary assign]
+  PAY --> PAYM[Salary payment]
+  EMP --> ADV[Advance salary<br/>/api/advance-salary]
+  EMP --> LEAVE[Leave<br/>/api/leave]
+  EMP --> AWD[Awards<br/>/api/awards]
+  DIR --> AWD
+  START --> ACAD[Academic<br/>/api/academic]
+  ACAD --> CLS[Classes / sections / subjects]
+  ACAD --> TIM[Schedules + class teachers]
+  DIR --> PROM[Student promotion]
+  ACAD --> EXAM[Exam Master<br/>/api/exam]
+  EXAM --> EXS[Setup + schedules]
+  EXS --> MARKS[Mark entries]
+  ADV --> PAYM
 ```
 
 ---
@@ -156,11 +186,22 @@ flowchart TD
 5. Maintain deactivate reason labels.
 6. Manage student & parent login deactivate queues.
 7. Manage parents (add, photo, soft delete with sole-guardian guard).
+8. Maintain departments / designations; add or CSV-import employees; manage employee login deactivate.
+9. Manage payroll: salary templates, assign grades, process monthly payments (also Accountant).
+10. Manage advance salary (also Accountant) and leave categories / applications.
+11. Give awards to employees or students (also Accountant).
+12. Manage academic structure (classes, sections, subjects, class teachers, schedules) and student promotion.
+13. Manage exams: terms, halls, mark distributions, exam setup/publish, schedules, mark entries.
 
 ### Teacher
 
 1. Read access: admissions list/detail, online admissions, student list, categories, parents list/detail.
-2. No write on deactivate / import / parent create (admin-only).
+2. Own employee profile: `GET /api/employees/me`.
+3. Own salary: `GET /api/payroll/my-salary` (+ month slip).
+4. Own HR: `/api/advance-salary/my`, `/api/leave/my`, `/api/awards/my`.
+5. Academic: read subjects/schedules; own teacher schedule.
+6. Exams: read schedules; submit mark entries.
+7. No write on deactivate / import / parent or employee create (admin-only).
 
 ### Parent (Guardian)
 
@@ -173,6 +214,7 @@ flowchart TD
 1. Login with tenant header.
 2. `GET /api/student-list/me` — own profile.
 3. Limited admission/list read of self.
+4. Published exam schedules (`/api/exam/schedules`) and own marks when result is published.
 
 ### Public applicant
 
@@ -223,7 +265,7 @@ When these land, extend the diagrams above and add module docs:
 
 | Area | Examples (planned / not in API yet) |
 |------|-------------------------------------|
-| Academics | Timetable, attendance, homework, exams, report cards |
+| Academics | Attendance, homework, report cards (exams: see module 17) |
 | Fees | Fee structure, invoices, payments ledger, receipts |
 | HR | Teachers staff CRUD beyond roles, payroll |
 | Library / Inventory | Books, issue/return, assets |

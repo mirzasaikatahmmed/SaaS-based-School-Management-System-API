@@ -26,6 +26,7 @@ public static class AppConstants
         public const string Student = "student";
         public const string Receptionist = "receptionist";
         public const string Staff = "staff";
+        public const string Demo = "demo";
 
         // Back-compat aliases used in earlier foundation code
         public const string SchoolAdmin = Admin;
@@ -40,7 +41,8 @@ public static class AppConstants
             (6, "Parent", Parent, true),
             (7, "Student", Student, true),
             (8, "Receptionist", Receptionist, true),
-            (9, "Staff", Staff, false)
+            (9, "Staff", Staff, false),
+            (10, "Demo", Demo, false)
         ];
     }
 
@@ -63,6 +65,8 @@ public static class AppConstants
         public const string Reports = "reports";
         public const string Students = "students";
         public const string Guardians = "guardians";
+        public const string Employees = "employees";
+        public const string LeaveAttachments = "leave-attachments";
         public const string Imports = "imports";
     }
 }

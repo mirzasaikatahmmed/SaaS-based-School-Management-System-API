@@ -9,5 +9,6 @@ public class ClassEntity
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Section> Sections { get; set; } = new List<Section>();
+    public ICollection<ClassSection> ClassSections { get; set; } = new List<ClassSection>();
     public ICollection<Student> Students { get; set; } = new List<Student>();
 }

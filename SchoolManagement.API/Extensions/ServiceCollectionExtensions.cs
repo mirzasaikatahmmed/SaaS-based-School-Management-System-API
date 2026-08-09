@@ -58,6 +58,30 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILoginDeactivateService, LoginDeactivateService>();
         services.AddScoped<IParentService, ParentService>();
         services.AddScoped<IParentLoginDeactivateService, ParentLoginDeactivateService>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
+        services.AddScoped<IDesignationService, DesignationService>();
+        services.AddScoped<IEmployeeService, EmployeeService>();
+        services.AddScoped<IEmployeeImportService, EmployeeImportService>();
+        services.AddScoped<ISalaryTemplateService, SalaryTemplateService>();
+        services.AddScoped<ISalaryAssignService, SalaryAssignService>();
+        services.AddScoped<ISalaryPaymentService, SalaryPaymentService>();
+        services.AddScoped<IAdvanceSalaryService, AdvanceSalaryService>();
+        services.AddScoped<ILeaveCategoryService, LeaveCategoryService>();
+        services.AddScoped<ILeaveService, LeaveService>();
+        services.AddScoped<IAwardService, AwardService>();
+        services.AddScoped<IClassControlService, ClassControlService>();
+        services.AddScoped<ISectionControlService, SectionControlService>();
+        services.AddScoped<IClassTeacherService, ClassTeacherService>();
+        services.AddScoped<ISubjectService, SubjectService>();
+        services.AddScoped<IClassSubjectAssignmentService, ClassSubjectAssignmentService>();
+        services.AddScoped<IClassScheduleService, ClassScheduleService>();
+        services.AddScoped<IStudentPromotionService, StudentPromotionService>();
+        services.AddScoped<IExamTermService, ExamTermService>();
+        services.AddScoped<IExamHallService, ExamHallService>();
+        services.AddScoped<IMarkDistributionService, MarkDistributionService>();
+        services.AddScoped<IExamService, ExamService>();
+        services.AddScoped<IExamScheduleService, ExamScheduleService>();
+        services.AddScoped<IMarkEntryService, MarkEntryService>();
         services.AddSingleton<IStorageService, StorageService>();
 
 
@@ -68,6 +92,13 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<CreateStudentCategoryValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateDeactivateReasonValidator>();
         services.AddValidatorsFromAssemblyContaining<AddParentValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddEmployeeValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateSalaryTemplateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ProcessPaymentValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateAdvanceSalaryValidator>();
+        services.AddValidatorsFromAssemblyContaining<GiveAwardValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateClassValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateExamValidator>();
         services.AddScoped<ValidationFilter>();
 
         return services;

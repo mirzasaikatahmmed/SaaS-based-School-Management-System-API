@@ -14,6 +14,29 @@ public interface IUnitOfWork : IAsyncDisposable
     IImportRepository Imports { get; }
     IStudentCategoryRepository StudentCategories { get; }
     IDeactivateReasonRepository DeactivateReasons { get; }
+    IDepartmentRepository Departments { get; }
+    IDesignationRepository Designations { get; }
+    IEmployeeRepository Employees { get; }
+    ISalaryTemplateRepository SalaryTemplates { get; }
+    ISalaryAssignmentRepository SalaryAssignments { get; }
+    ISalaryPaymentRepository SalaryPayments { get; }
+    IAdvanceSalaryRepository AdvanceSalaries { get; }
+    ILeaveCategoryRepository LeaveCategories { get; }
+    ILeaveRequestRepository LeaveRequests { get; }
+    IAwardRepository Awards { get; }
+    IClassControlRepository ClassControls { get; }
+    ISectionControlRepository SectionControls { get; }
+    IClassTeacherRepository ClassTeachers { get; }
+    ISubjectRepository Subjects { get; }
+    IClassSubjectAssignmentRepository ClassSubjectAssignments { get; }
+    IClassScheduleRepository ClassSchedules { get; }
+    IStudentPromotionRepository StudentPromotions { get; }
+    IExamTermRepository ExamTerms { get; }
+    IExamHallRepository ExamHalls { get; }
+    IMarkDistributionRepository MarkDistributions { get; }
+    IExamRepository Exams { get; }
+    IExamScheduleRepository ExamSchedules { get; }
+    IMarkEntryRepository MarkEntries { get; }
     Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTenantTransactionAsync(CancellationToken cancellationToken = default);

@@ -26,6 +26,12 @@ Super Admin school/tenant APIs typically omit `X-Tenant-ID` unless acting inside
 | 9 | Student Login Deactivate | [09-login-deactivate.md](./modules/09-login-deactivate.md) |
 | 10 | Parents | [10-parents.md](./modules/10-parents.md) |
 | 11 | Parent Login Deactivate | [11-parent-login-deactivate.md](./modules/11-parent-login-deactivate.md) |
+| 12 | Employees (Dept / Designation / Staff / Login Deactivate) | [12-employees.md](./modules/12-employees.md) |
+| 13 | Payroll (Salary Template / Assign / Payment) | [13-payroll.md](./modules/13-payroll.md) |
+| 14 | Advance Salary & Leave | [14-advance-salary-and-leave.md](./modules/14-advance-salary-and-leave.md) |
+| 15 | Awards | [15-awards.md](./modules/15-awards.md) |
+| 16 | Academic | [16-academic.md](./modules/16-academic.md) |
+| 17 | Exam Master | [17-exam-master.md](./modules/17-exam-master.md) |
 
 ## Typical end-to-end workflow
 
@@ -44,6 +50,25 @@ flowchart TD
   I --> J[Parents module]
   I --> K[Login / record deactivate]
   J --> L[Parent login deactivate]
+  C --> M[Departments + Designations]
+  M --> N[Add / import employees]
+  N --> O[Employee list by role]
+  N --> P[Employee login deactivate]
+  N --> Q[Salary templates]
+  Q --> R[Assign salary grades]
+  R --> S[Monthly salary payment]
+  N --> T[Leave categories]
+  T --> U[Leave applications]
+  N --> V[Advance salary]
+  V --> S
+  N --> W[Awards]
+  I --> W
+  C --> AC[Academic: classes / sections / subjects]
+  AC --> SCH[Schedules + class teachers]
+  I --> PRO[Student promotion]
+  AC --> EX[Exam terms / halls / distributions]
+  EX --> ES[Exam setup + schedule]
+  ES --> ME[Mark entries]
 ```
 
 ## Roles quick reference
@@ -52,6 +77,6 @@ flowchart TD
 |------|--------|----------------|
 | Super Admin | `superadmin` | All tenants, school provisioning |
 | School Admin | `admin` | Full access within tenant |
-| Teacher | `teacher` | Read list/detail on many modules |
+| Teacher | `teacher` | Read list/detail; submit mark entries |
 | Parent / Guardian | `parent` | Own profile + ward details |
-| Student | `student` | Own profile |
+| Student | `student` | Own profile; published exam schedule/results |
