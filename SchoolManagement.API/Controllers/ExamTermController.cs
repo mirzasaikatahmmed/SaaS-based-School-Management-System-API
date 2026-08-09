@@ -25,7 +25,7 @@ public class ExamTermController(IExamTermService service) : ControllerBase
     public async Task<IActionResult> Create(CreateExamTermDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamTermResponseDto>.Ok(await service.CreateAsync(dto, ct), "Exam term created"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateExamTermDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamTermResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Exam term updated"));

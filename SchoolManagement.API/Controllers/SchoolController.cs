@@ -85,7 +85,7 @@ public class SchoolController : ControllerBase
             ApiResponse<SchoolResponseDto>.Ok(result, "School created successfully"));
     }
 
-    [HttpPut("{slug}")]
+    [HttpPatch("{slug}")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<SchoolResponseDto>>> Update(
         string slug,
@@ -107,7 +107,7 @@ public class SchoolController : ControllerBase
         return Ok(ApiResponse.Ok("School deactivated"));
     }
 
-    [HttpPut("{slug}/activate")]
+    [HttpPatch("{slug}/activate")]
     [Authorize(Roles = AppConstants.Roles.SuperAdmin)]
     public async Task<ActionResult<ApiResponse>> Activate(
         string slug,
@@ -146,7 +146,7 @@ public class SchoolController : ControllerBase
         return Ok(ApiResponse<SchoolSettingsDto>.Ok(result, "Settings retrieved"));
     }
 
-    [HttpPut("{slug}/settings")]
+    [HttpPatch("{slug}/settings")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<SchoolSettingsDto>>> UpdateSettings(
         string slug,

@@ -30,7 +30,7 @@ public class ExamHallController(IExamHallService service) : ControllerBase
     public async Task<IActionResult> Create(CreateExamHallDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamHallResponseDto>.Ok(await service.CreateAsync(dto, ct), "Exam hall created"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateExamHallDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamHallResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Exam hall updated"));

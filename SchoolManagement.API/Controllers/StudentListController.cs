@@ -96,7 +96,7 @@ public class StudentListController : ControllerBase
         return Ok(ApiResponse<StudentDetailDto>.Ok(result, "Student retrieved"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<StudentDetailDto>>> Update(
         Guid id,
@@ -117,7 +117,7 @@ public class StudentListController : ControllerBase
         return Ok(ApiResponse.Ok("Student deleted"));
     }
 
-    [HttpPut("{id:guid}/toggle-login")]
+    [HttpPatch("{id:guid}/toggle-login")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<object>>> ToggleLogin(
         Guid id,
@@ -139,7 +139,7 @@ public class StudentListController : ControllerBase
         return Ok(ApiResponse.Ok("Student deactivated"));
     }
 
-    [HttpPut("{id:guid}/activate")]
+    [HttpPatch("{id:guid}/activate")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<object>>> Activate(
         Guid id,

@@ -138,7 +138,7 @@ public class OnlineAdmissionController : ControllerBase
         return Ok(ApiResponse<OnlineAdmissionResponseDto>.Ok(result, "Print data retrieved"));
     }
 
-    [HttpPut("{id:guid}/approve")]
+    [HttpPatch("{id:guid}/approve")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<OnlineAdmissionResponseDto>>> Approve(
         Guid id,
@@ -149,7 +149,7 @@ public class OnlineAdmissionController : ControllerBase
         return Ok(ApiResponse<OnlineAdmissionResponseDto>.Ok(result, "Application approved"));
     }
 
-    [HttpPut("{id:guid}/decline")]
+    [HttpPatch("{id:guid}/decline")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<OnlineAdmissionResponseDto>>> Decline(
         Guid id,
@@ -160,7 +160,7 @@ public class OnlineAdmissionController : ControllerBase
         return Ok(ApiResponse<OnlineAdmissionResponseDto>.Ok(result, "Application declined"));
     }
 
-    [HttpPut("{id:guid}/payment")]
+    [HttpPatch("{id:guid}/payment")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<OnlineAdmissionResponseDto>>> UpdatePayment(
         Guid id,

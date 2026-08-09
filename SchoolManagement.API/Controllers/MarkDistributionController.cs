@@ -25,7 +25,7 @@ public class MarkDistributionController(IMarkDistributionService service) : Cont
     public async Task<IActionResult> Create(CreateMarkDistributionDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<MarkDistributionResponseDto>.Ok(await service.CreateAsync(dto, ct), "Mark distribution created"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateMarkDistributionDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<MarkDistributionResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Mark distribution updated"));

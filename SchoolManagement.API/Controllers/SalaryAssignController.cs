@@ -16,7 +16,7 @@ public class SalaryAssignController(ISalaryAssignService service) : ControllerBa
     public async Task<IActionResult> GetList([FromQuery] SalaryAssignFilterDto filter, CancellationToken ct = default)
         => Ok(ApiResponse<SalaryAssignListResponseDto>.Ok(await service.GetListAsync(filter, ct), "Salary assignments retrieved"));
 
-    [HttpPut("{employeeId:guid}")]
+    [HttpPatch("{employeeId:guid}")]
     public async Task<IActionResult> Assign(Guid employeeId, AssignSalaryGradeDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SalaryAssignItemDto>.Ok(await service.AssignAsync(employeeId, dto, ct), "Salary grade assigned"));
 

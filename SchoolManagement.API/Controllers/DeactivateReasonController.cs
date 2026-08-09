@@ -37,7 +37,7 @@ public class DeactivateReasonController : ControllerBase
             ApiResponse<DeactivateReasonDto>.Ok(result, "Deactivate reason created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     public async Task<ActionResult<ApiResponse<DeactivateReasonDto>>> Update(
         Guid id,
         [FromBody] UpdateDeactivateReasonDto dto,

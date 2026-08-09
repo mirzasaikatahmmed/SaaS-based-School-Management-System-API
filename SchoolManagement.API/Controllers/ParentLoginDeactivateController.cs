@@ -34,7 +34,7 @@ public class ParentLoginDeactivateController : ControllerBase
         return Ok(ApiResponse<ParentLoginDeactivateListResponseDto>.Ok(result, "Login-deactivated parents retrieved"));
     }
 
-    [HttpPut("{id:guid}/activate")]
+    [HttpPatch("{id:guid}/activate")]
     public async Task<ActionResult<ApiResponse<object>>> Activate(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class ParentLoginDeactivateController : ControllerBase
         return Ok(ApiResponse.Ok("Parent login activated"));
     }
 
-    [HttpPut("{id:guid}/deactivate")]
+    [HttpPatch("{id:guid}/deactivate")]
     public async Task<ActionResult<ApiResponse<object>>> Deactivate(
         Guid id,
         CancellationToken cancellationToken = default)

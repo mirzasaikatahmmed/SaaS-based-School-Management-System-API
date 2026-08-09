@@ -69,7 +69,7 @@ public class ParentController : ControllerBase
             ApiResponse<ParentDetailDto>.Ok(result, "Parent created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<ParentDetailDto>>> Update(
         Guid id,

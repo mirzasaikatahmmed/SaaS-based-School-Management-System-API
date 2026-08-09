@@ -47,7 +47,7 @@ public class SalaryPaymentController(ISalaryPaymentService service) : Controller
     public async Task<IActionResult> Pay(Guid employeeId, ProcessPaymentDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SalaryPaymentResponseDto>.Ok(await service.ProcessPaymentAsync(employeeId, dto, ct), "Salary payment processed"));
 
-    [HttpPut("{id:guid}/update")]
+    [HttpPatch("{id:guid}/update")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, ProcessPaymentDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SalaryPaymentResponseDto>.Ok(await service.UpdatePaymentAsync(id, dto, ct), "Salary payment updated"));

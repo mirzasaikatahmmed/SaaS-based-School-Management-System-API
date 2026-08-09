@@ -31,7 +31,7 @@ public class SalaryTemplateController(ISalaryTemplateService service) : Controll
         return CreatedAtAction(nameof(Get), new { id = result.Id }, ApiResponse<SalaryTemplateResponseDto>.Ok(result, "Salary template created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateSalaryTemplateDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SalaryTemplateResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Salary template updated"));
 

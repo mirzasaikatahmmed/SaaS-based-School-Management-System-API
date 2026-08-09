@@ -24,7 +24,7 @@ public class LeaveCategoryController(ILeaveCategoryService service) : Controller
     public async Task<IActionResult> Create(CreateLeaveCategoryDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<LeaveCategoryResponseDto>.Ok(await service.CreateAsync(dto, ct), "Leave category created"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateLeaveCategoryDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<LeaveCategoryResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Leave category updated"));
 

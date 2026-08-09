@@ -33,7 +33,7 @@ public class SubjectController(ISubjectService service) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<SubjectResponseDto>.Ok(result, "Subject created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateSubjectDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SubjectResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Subject updated"));

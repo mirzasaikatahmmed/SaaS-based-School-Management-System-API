@@ -33,7 +33,7 @@ public class ClassControlController(IClassControlService service) : ControllerBa
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<ClassResponseDto>.Ok(result, "Class created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateClassDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ClassResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Class updated"));

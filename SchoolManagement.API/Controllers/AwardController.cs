@@ -51,7 +51,7 @@ public class AwardController(IAwardService service) : ControllerBase
     public async Task<IActionResult> Give(GiveAwardDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<AwardResponseDto>.Ok(await service.GiveAwardAsync(dto, ct), "Award given"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateAwardDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<AwardResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Award updated"));

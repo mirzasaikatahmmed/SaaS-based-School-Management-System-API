@@ -40,12 +40,12 @@ public class AdvanceSalaryController(IAdvanceSalaryService service) : Controller
     public async Task<IActionResult> Create(CreateAdvanceSalaryDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<AdvanceSalaryResponseDto>.Ok(await service.CreateForEmployeeAsync(dto, ct), "Advance salary request created"));
 
-    [HttpPut("{id:guid}/approve")]
+    [HttpPatch("{id:guid}/approve")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Approve(Guid id, CancellationToken ct = default)
         => Ok(ApiResponse<AdvanceSalaryResponseDto>.Ok(await service.ApproveAsync(id, ct), "Advance salary approved"));
 
-    [HttpPut("{id:guid}/reject")]
+    [HttpPatch("{id:guid}/reject")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Reject(Guid id, ReviewAdvanceSalaryDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<AdvanceSalaryResponseDto>.Ok(await service.RejectAsync(id, dto, ct), "Advance salary rejected"));

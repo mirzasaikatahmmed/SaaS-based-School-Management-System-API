@@ -39,7 +39,7 @@ public class StudentCategoryController : ControllerBase
             ApiResponse<StudentCategoryResponseDto>.Ok(result, "Category created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<StudentCategoryResponseDto>>> Update(
         Guid id,

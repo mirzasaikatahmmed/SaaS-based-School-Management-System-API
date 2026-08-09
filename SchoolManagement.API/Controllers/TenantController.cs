@@ -48,7 +48,7 @@ public class TenantController : ControllerBase
         return Ok(ApiResponse<TenantResponseDto>.Ok(result, "Tenant retrieved"));
     }
 
-    [HttpPut("{slug}/settings")]
+    [HttpPatch("{slug}/settings")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<TenantResponseDto>>> UpdateSettings(
         string slug,

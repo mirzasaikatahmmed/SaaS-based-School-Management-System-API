@@ -47,12 +47,12 @@ public class LeaveController(ILeaveService service) : ControllerBase
     public async Task<IActionResult> AdminCreate(AdminCreateLeaveRequestDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<LeaveListItemDto>.Ok(await service.AdminCreateAsync(dto, ct), "Leave request created"));
 
-    [HttpPut("{id:guid}/approve")]
+    [HttpPatch("{id:guid}/approve")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Approve(Guid id, ReviewLeaveDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<LeaveListItemDto>.Ok(await service.ApproveAsync(id, dto, ct), "Leave approved"));
 
-    [HttpPut("{id:guid}/reject")]
+    [HttpPatch("{id:guid}/reject")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Reject(Guid id, ReviewLeaveDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<LeaveListItemDto>.Ok(await service.RejectAsync(id, dto, ct), "Leave rejected"));

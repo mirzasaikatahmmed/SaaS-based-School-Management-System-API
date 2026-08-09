@@ -148,6 +148,31 @@ public static class ServiceCollectionExtensions
                 Description = "SaaS School Management System — Authentication & Multi-Tenancy"
             });
 
+            options.DocumentFilter<EndpointCountDocumentFilter>();
+
+            // Avoid collisions when DTO class names repeat across namespaces
+            // (e.g. Student.StudentListResponseDto vs StudentList.StudentListResponseDto).
+            options.CustomSchemaIds(type =>
+            {
+                if (type.IsGenericType)
+                {
+                    var name = type.GetGenericTypeDefinition().FullName;
+                    if (name is not null)
+                    {
+                        var tick = name.IndexOf('`');
+                        if (tick > 0) name = name[..tick];
+                    }
+
+                    var args = string.Join(",", type.GetGenericArguments().Select(SchemaId));
+                    return $"{name?.Replace('+', '.')}<{args}>";
+                }
+
+                return SchemaId(type);
+            });
+
+            static string SchemaId(Type t) =>
+                (t.FullName ?? t.Name).Replace('+', '.');
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",

@@ -70,7 +70,7 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<UserProfileDto>.Ok(result, "Profile retrieved"));
     }
 
-    [HttpPut("me")]
+    [HttpPatch("me")]
     [Authorize]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateMe(
         [FromBody] UpdateProfileRequestDto request,

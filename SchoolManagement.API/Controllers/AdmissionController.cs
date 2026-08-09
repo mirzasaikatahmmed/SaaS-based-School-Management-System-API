@@ -69,7 +69,7 @@ public class AdmissionController : ControllerBase
             ApiResponse<StudentResponseDto>.Ok(result, "Admission created successfully"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = $"{AppConstants.Roles.SuperAdmin},{AppConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponse<StudentResponseDto>>> Update(
         Guid id,

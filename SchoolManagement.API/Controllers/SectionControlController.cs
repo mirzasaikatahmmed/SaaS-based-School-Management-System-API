@@ -33,7 +33,7 @@ public class SectionControlController(ISectionControlService service) : Controll
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<SectionResponseDto>.Ok(result, "Section created"));
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateSectionDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<SectionResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Section updated"));

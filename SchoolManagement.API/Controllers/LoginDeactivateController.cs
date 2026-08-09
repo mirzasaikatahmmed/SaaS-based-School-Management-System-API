@@ -34,7 +34,7 @@ public class LoginDeactivateController : ControllerBase
         return Ok(ApiResponse<LoginDeactivateListResponseDto>.Ok(result, "Login-deactivated students retrieved"));
     }
 
-    [HttpPut("{studentId:guid}/activate")]
+    [HttpPatch("{studentId:guid}/activate")]
     public async Task<ActionResult<ApiResponse<object>>> Activate(
         Guid studentId,
         CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class LoginDeactivateController : ControllerBase
         return Ok(ApiResponse.Ok("Student login activated"));
     }
 
-    [HttpPut("{studentId:guid}/deactivate")]
+    [HttpPatch("{studentId:guid}/deactivate")]
     public async Task<ActionResult<ApiResponse<object>>> Deactivate(
         Guid studentId,
         CancellationToken cancellationToken = default)

@@ -35,17 +35,17 @@ public class ExamController(IExamService service) : ControllerBase
     public async Task<IActionResult> Create(CreateExamDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamResponseDto>.Ok(await service.CreateAsync(dto, ct), "Exam created"));
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> Update(Guid id, UpdateExamDto dto, CancellationToken ct = default)
         => Ok(ApiResponse<ExamResponseDto>.Ok(await service.UpdateAsync(id, dto, ct), "Exam updated"));
 
-    [HttpPut("{id:guid}/publish")]
+    [HttpPatch("{id:guid}/publish")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> TogglePublish(Guid id, CancellationToken ct = default)
         => Ok(ApiResponse<ExamResponseDto>.Ok(await service.TogglePublishAsync(id, ct), "Exam publish status updated"));
 
-    [HttpPut("{id:guid}/publish-result")]
+    [HttpPatch("{id:guid}/publish-result")]
     [Authorize(Roles = ManageRoles)]
     public async Task<IActionResult> TogglePublishResult(Guid id, CancellationToken ct = default)
         => Ok(ApiResponse<ExamResponseDto>.Ok(await service.TogglePublishResultAsync(id, ct), "Exam result publish status updated"));
