@@ -26,7 +26,8 @@ public class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var result = await _authService.LoginAsync(request, ip, cancellationToken);
+        var ua = Request.Headers.UserAgent.ToString();
+        var result = await _authService.LoginAsync(request, ip, ua, cancellationToken);
         return Ok(ApiResponse<LoginResponseDto>.Ok(result, "Login successful"));
     }
 

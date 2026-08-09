@@ -105,6 +105,14 @@ public class TenantDbContext : DbContext
     public DbSet<BiometricDevice> BiometricDevices => Set<BiometricDevice>();
     public DbSet<BiometricUserMap> BiometricUserMaps => Set<BiometricUserMap>();
     public DbSet<BiometricPunchLog> BiometricPunchLogs => Set<BiometricPunchLog>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<AcademicSession> AcademicSessions => Set<AcademicSession>();
+    public DbSet<DatabaseBackup> DatabaseBackups => Set<DatabaseBackup>();
+    public DbSet<EmailSettings> EmailSettings => Set<EmailSettings>();
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+    public DbSet<SmsSettings> SmsSettings => Set<SmsSettings>();
+    public DbSet<SmsTemplate> SmsTemplates => Set<SmsTemplate>();
+    public DbSet<NotificationDispatchLog> NotificationDispatchLogs => Set<NotificationDispatchLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -143,11 +151,30 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(50).IsRequired();
             entity.Property(e => e.Prefix).HasColumnName("prefix").HasMaxLength(50).IsRequired();
             entity.Property(e => e.IsSystem).HasColumnName("is_system").HasDefaultValue(true);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
 
             entity.HasIndex(e => e.Prefix).IsUnique();
             entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<RolePermission>(entity =>
+        {
+            entity.ToTable("role_permissions", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.FeatureKey).HasColumnName("feature_key").HasMaxLength(150).IsRequired();
+            entity.Property(e => e.CanView).HasColumnName("can_view").HasDefaultValue(false);
+            entity.Property(e => e.CanAdd).HasColumnName("can_add").HasDefaultValue(false);
+            entity.Property(e => e.CanEdit).HasColumnName("can_edit").HasDefaultValue(false);
+            entity.Property(e => e.CanDelete).HasColumnName("can_delete").HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => new { e.RoleId, e.FeatureKey }).IsUnique();
+            entity.HasOne(e => e.Role).WithMany(r => r.Permissions).HasForeignKey(e => e.RoleId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<UserRole>(entity =>
@@ -1605,6 +1632,11 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.ReportCardLogoUrl).HasColumnName("report_card_logo_url").HasMaxLength(500);
             entity.Property(e => e.PaymentGateways).HasColumnName("payment_gateways").HasColumnType("jsonb").HasDefaultValue("{}");
             entity.Property(e => e.ActiveGateways).HasColumnName("active_gateways").HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(e => e.AttendanceType).HasColumnName("attendance_type").HasMaxLength(20).HasDefaultValue("DayWise");
+            entity.Property(e => e.DefaultDepositAccountId).HasColumnName("default_deposit_account_id");
+            entity.Property(e => e.DefaultExpenseAccountId).HasColumnName("default_expense_account_id");
+            entity.Property(e => e.AccountingLinksEnabled).HasColumnName("accounting_links_enabled").HasDefaultValue(false);
+            entity.Property(e => e.CronSecretKey).HasColumnName("cron_secret_key").HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
         });
@@ -1666,6 +1698,108 @@ public class TenantDbContext : DbContext
             entity.HasOne(e => e.Device).WithMany(d => d.PunchLogs).HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<AcademicSession>(entity =>
+        {
+            entity.ToTable("academic_sessions", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.IsSelected).HasColumnName("is_selected").HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<DatabaseBackup>(entity =>
+        {
+            entity.ToTable("database_backups", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.FileName).HasColumnName("file_name").HasMaxLength(255).IsRequired();
+            entity.Property(e => e.ObjectKey).HasColumnName("object_key").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.SizeBytes).HasColumnName("size_bytes").HasDefaultValue(0L);
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<EmailSettings>(entity =>
+        {
+            entity.ToTable("email_settings", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.IsEnabled).HasColumnName("is_enabled").HasDefaultValue(false);
+            entity.Property(e => e.SystemEmail).HasColumnName("system_email").HasMaxLength(255);
+            entity.Property(e => e.Protocol).HasColumnName("protocol").HasMaxLength(20).HasDefaultValue("SMTP");
+            entity.Property(e => e.SmtpHost).HasColumnName("smtp_host").HasMaxLength(255);
+            entity.Property(e => e.SmtpPort).HasColumnName("smtp_port").HasDefaultValue(587);
+            entity.Property(e => e.SmtpUsername).HasColumnName("smtp_username").HasMaxLength(255);
+            entity.Property(e => e.SmtpPassword).HasColumnName("smtp_password").HasMaxLength(1000);
+            entity.Property(e => e.SmtpSecure).HasColumnName("smtp_secure").HasMaxLength(20).HasDefaultValue("TLS");
+            entity.Property(e => e.SmtpAuth).HasColumnName("smtp_auth").HasDefaultValue(true);
+            entity.Property(e => e.FromName).HasColumnName("from_name").HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<EmailTemplate>(entity =>
+        {
+            entity.ToTable("email_templates", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.EventKey).HasColumnName("event_key").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Subject).HasColumnName("subject").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.BodyHtml).HasColumnName("body_html").IsRequired();
+            entity.Property(e => e.NotifyEnabled).HasColumnName("notify_enabled").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.EventKey).IsUnique();
+        });
+
+        modelBuilder.Entity<SmsSettings>(entity =>
+        {
+            entity.ToTable("sms_settings", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.IsEnabled).HasColumnName("is_enabled").HasDefaultValue(false);
+            entity.Property(e => e.ActivatedGateway).HasColumnName("activated_gateway").HasMaxLength(50).HasDefaultValue("bulksmsbd");
+            entity.Property(e => e.CredentialsJson).HasColumnName("credentials_json").HasColumnType("jsonb").HasDefaultValue("{}");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<SmsTemplate>(entity =>
+        {
+            entity.ToTable("sms_templates", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.EventKey).HasColumnName("event_key").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Body).HasColumnName("body").IsRequired();
+            entity.Property(e => e.NotifyStudent).HasColumnName("notify_student").HasDefaultValue(false);
+            entity.Property(e => e.NotifyParent).HasColumnName("notify_parent").HasDefaultValue(true);
+            entity.Property(e => e.DltTemplateId).HasColumnName("dlt_template_id").HasMaxLength(100);
+            entity.Property(e => e.NotifyEnabled).HasColumnName("notify_enabled").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.EventKey).IsUnique();
+        });
+
+        modelBuilder.Entity<NotificationDispatchLog>(entity =>
+        {
+            entity.ToTable("notification_dispatch_log", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.JobName).HasColumnName("job_name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.EntityKey).HasColumnName("entity_key").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.RunDate).HasColumnName("run_date");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.JobName, e.EntityKey, e.RunDate }).IsUnique();
         });
     }
 }

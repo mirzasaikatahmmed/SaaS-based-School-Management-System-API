@@ -14,7 +14,8 @@ public class TenantResolutionMiddleware
         "/health",
         "/swagger",
         "/favicon.ico",
-        "/iclock"
+        "/iclock",
+        "/cron_api"
     };
 
     public TenantResolutionMiddleware(RequestDelegate next, ILogger<TenantResolutionMiddleware> logger)

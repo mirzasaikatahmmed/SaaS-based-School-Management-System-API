@@ -40,8 +40,27 @@ public class SchoolSettings
     public string PaymentGateways { get; set; } = "{}";
     public string ActiveGateways { get; set; } = "[]";
 
+    // Attendance
+    public string AttendanceType { get; set; } = AttendanceTypes.DayWise;
+
+    // Accounting links
+    public Guid? DefaultDepositAccountId { get; set; }
+    public Guid? DefaultExpenseAccountId { get; set; }
+    public bool AccountingLinksEnabled { get; set; }
+
+    // Cron
+    public string? CronSecretKey { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public static class AttendanceTypes
+{
+    public const string DayWise = "DayWise";
+    public const string SubjectWise = "SubjectWise";
+    public static readonly string[] All = [DayWise, SubjectWise];
+    public static bool IsValid(string? type) => All.Any(x => x.Equals(type?.Trim(), StringComparison.OrdinalIgnoreCase));
 }
 
 public static class LogoTypes

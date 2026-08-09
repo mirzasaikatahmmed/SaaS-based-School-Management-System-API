@@ -23,6 +23,7 @@ public interface ITenantSchemaProvisioner
     Task EnsureStudentAndOfficeAccountingModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureMessageAndSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureBiometricModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -1726,6 +1727,132 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             ON CONFLICT DO NOTHING;
             """;
 
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    public async Task EnsureSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureBiometricModuleAsync(schemaName, cancellationToken);
+
+        var sql = $$"""
+            ALTER TABLE "{{schemaName}}".roles
+                ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".role_permissions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                role_id UUID NOT NULL REFERENCES "{{schemaName}}".roles(id) ON DELETE CASCADE,
+                feature_key VARCHAR(150) NOT NULL,
+                can_view BOOLEAN NOT NULL DEFAULT false,
+                can_add BOOLEAN NOT NULL DEFAULT false,
+                can_edit BOOLEAN NOT NULL DEFAULT false,
+                can_delete BOOLEAN NOT NULL DEFAULT false,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{{schemaName}}_role_permissions_role_feature"
+                ON "{{schemaName}}".role_permissions (role_id, feature_key);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".academic_sessions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(50) NOT NULL,
+                is_selected BOOLEAN NOT NULL DEFAULT false,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{{schemaName}}_academic_sessions_name"
+                ON "{{schemaName}}".academic_sessions (name);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".database_backups (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                file_name VARCHAR(255) NOT NULL,
+                object_key VARCHAR(500) NOT NULL,
+                size_bytes BIGINT NOT NULL DEFAULT 0,
+                note TEXT,
+                created_by UUID,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            ALTER TABLE "{{schemaName}}".school_settings
+                ADD COLUMN IF NOT EXISTS attendance_type VARCHAR(20) NOT NULL DEFAULT 'DayWise',
+                ADD COLUMN IF NOT EXISTS default_deposit_account_id UUID,
+                ADD COLUMN IF NOT EXISTS default_expense_account_id UUID,
+                ADD COLUMN IF NOT EXISTS accounting_links_enabled BOOLEAN NOT NULL DEFAULT false,
+                ADD COLUMN IF NOT EXISTS cron_secret_key VARCHAR(100);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".email_settings (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                is_enabled BOOLEAN NOT NULL DEFAULT false,
+                system_email VARCHAR(255),
+                protocol VARCHAR(20) NOT NULL DEFAULT 'SMTP',
+                smtp_host VARCHAR(255),
+                smtp_port INT NOT NULL DEFAULT 587,
+                smtp_username VARCHAR(255),
+                smtp_password VARCHAR(1000),
+                smtp_secure VARCHAR(20) NOT NULL DEFAULT 'TLS',
+                smtp_auth BOOLEAN NOT NULL DEFAULT true,
+                from_name VARCHAR(200),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".email_templates (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                event_key VARCHAR(100) NOT NULL,
+                name VARCHAR(200) NOT NULL,
+                subject VARCHAR(500) NOT NULL,
+                body_html TEXT NOT NULL,
+                notify_enabled BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{{schemaName}}_email_templates_event"
+                ON "{{schemaName}}".email_templates (event_key);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".sms_settings (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                is_enabled BOOLEAN NOT NULL DEFAULT false,
+                activated_gateway VARCHAR(50) NOT NULL DEFAULT 'bulksmsbd',
+                credentials_json JSONB NOT NULL DEFAULT '__EMPTY_JSON_OBJECT__'::jsonb,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".sms_templates (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                event_key VARCHAR(100) NOT NULL,
+                name VARCHAR(200) NOT NULL,
+                body TEXT NOT NULL,
+                notify_student BOOLEAN NOT NULL DEFAULT false,
+                notify_parent BOOLEAN NOT NULL DEFAULT true,
+                dlt_template_id VARCHAR(100),
+                notify_enabled BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{{schemaName}}_sms_templates_event"
+                ON "{{schemaName}}".sms_templates (event_key);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".notification_dispatch_log (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                job_name VARCHAR(100) NOT NULL,
+                entity_key VARCHAR(200) NOT NULL,
+                run_date DATE NOT NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{{schemaName}}_notification_dispatch_log"
+                ON "{{schemaName}}".notification_dispatch_log (job_name, entity_key, run_date);
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809202445_AddSettingsModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        sql = sql.Replace("__EMPTY_JSON_OBJECT__", "{{}}");
         await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 

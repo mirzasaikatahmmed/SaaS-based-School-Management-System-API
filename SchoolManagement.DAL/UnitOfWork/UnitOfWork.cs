@@ -75,6 +75,13 @@ public class UnitOfWork : IUnitOfWork
     private IBiometricUserMapRepository? _biometricUserMapRepository;
     private IBiometricPunchLogRepository? _biometricPunchLogRepository;
     private IBiometricDeviceRegistryRepository? _biometricDeviceRegistryRepository;
+    private IRoleRepository? _roleRepository;
+    private IAcademicSessionRepository? _academicSessionRepository;
+    private IDatabaseBackupRepository? _databaseBackupRepository;
+    private ILoginLogRepository? _loginLogRepository;
+    private IEmailSettingsRepository? _emailSettingsRepository;
+    private ISmsSettingsRepository? _smsSettingsRepository;
+    private ICronSecretRegistryRepository? _cronSecretRegistryRepository;
     private IDbContextTransaction? _tenantTransaction;
     private bool _disposed;
 
@@ -630,6 +637,63 @@ public class UnitOfWork : IUnitOfWork
 
     public IBiometricDeviceRegistryRepository BiometricDeviceRegistries =>
         _biometricDeviceRegistryRepository ??= new BiometricDeviceRegistryRepository(_masterContext);
+
+    public IRoleRepository Roles
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _roleRepository ??= new RoleRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAcademicSessionRepository AcademicSessions
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _academicSessionRepository ??= new AcademicSessionRepository(_tenantContextDb!);
+        }
+    }
+
+    public IDatabaseBackupRepository DatabaseBackups
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _databaseBackupRepository ??= new DatabaseBackupRepository(_tenantContextDb!);
+        }
+    }
+
+    public ILoginLogRepository LoginLogs
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _loginLogRepository ??= new LoginLogRepository(_tenantContextDb!);
+        }
+    }
+
+    public IEmailSettingsRepository EmailSettings
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _emailSettingsRepository ??= new EmailSettingsRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISmsSettingsRepository SmsSettings
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _smsSettingsRepository ??= new SmsSettingsRepository(_tenantContextDb!);
+        }
+    }
+
+    public ICronSecretRegistryRepository CronSecretRegistries =>
+        _cronSecretRegistryRepository ??= new CronSecretRegistryRepository(_masterContext);
 
     public async Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default)
     {

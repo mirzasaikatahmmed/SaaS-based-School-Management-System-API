@@ -101,6 +101,53 @@ namespace SchoolManagement.DAL.Migrations.Master
                     b.ToTable("biometric_device_registry", "public");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Master.CronSecretRegistry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("SchemaName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("schema_name");
+
+                    b.Property<string>("SecretKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("secret_key");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SecretKey")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId")
+                        .IsUnique();
+
+                    b.ToTable("cron_secret_registry", "public");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Master.GlobalSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -472,6 +519,17 @@ namespace SchoolManagement.DAL.Migrations.Master
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Master.BiometricDeviceRegistry", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Master.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Master.CronSecretRegistry", b =>
                 {
                     b.HasOne("SchoolManagement.DAL.Entities.Master.Tenant", "Tenant")
                         .WithMany()

@@ -118,6 +118,7 @@ public class UserRepository : IUserRepository
                     Name = name,
                     Prefix = prefix,
                     IsSystem = isSystem,
+                    IsActive = true,
                     Description = $"{name} role",
                     CreatedAt = DateTime.UtcNow
                 }, cancellationToken);

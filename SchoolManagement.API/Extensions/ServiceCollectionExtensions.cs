@@ -1,6 +1,7 @@
 using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -112,7 +113,24 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBiometricUserMapService, BiometricUserMapService>();
         services.AddScoped<IBiometricPunchService, BiometricPunchService>();
         services.AddScoped<IZkTecoAdmsService, ZkTecoAdmsService>();
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAcademicSessionService, AcademicSessionService>();
+        services.AddScoped<ICronSettingsService, CronSettingsService>();
+        services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+        services.AddScoped<IUserLoginLogService, UserLoginLogService>();
+        services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
+        services.AddScoped<IEmailSettingsAppService, EmailSettingsService>();
+        services.AddScoped<ISmsSettingsAppService, SmsSettingsService>();
+        services.AddScoped<ISmsSenderFactory, SchoolManagement.BLL.Services.Sms.SmsSenderFactory>();
+        services.AddHttpClient(SchoolManagement.BLL.Services.Sms.BulkSmsBdSmsSender.HttpClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, text/plain, */*");
+        });
+        services.AddScoped<ISchoolSettingsExtrasService, SchoolSettingsExtrasService>();
         services.AddSingleton<IStorageService, StorageService>();
+        services.AddDataProtection();
 
 
         services.AddValidatorsFromAssemblyContaining<LoginValidator>();
@@ -132,6 +150,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<CreateGradeRangeValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateBookValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateEventValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateRoleValidator>();
         services.AddScoped<ValidationFilter>();
 
         return services;

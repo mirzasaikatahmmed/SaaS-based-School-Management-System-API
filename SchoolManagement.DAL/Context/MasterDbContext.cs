@@ -13,6 +13,7 @@ public class MasterDbContext : DbContext
     public DbSet<SuperAdmin> SuperAdmins => Set<SuperAdmin>();
     public DbSet<GlobalSettings> GlobalSettings => Set<GlobalSettings>();
     public DbSet<BiometricDeviceRegistry> BiometricDeviceRegistries => Set<BiometricDeviceRegistry>();
+    public DbSet<CronSecretRegistry> CronSecretRegistries => Set<CronSecretRegistry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,6 +125,22 @@ public class MasterDbContext : DbContext
 
             entity.HasIndex(e => e.SerialNumber).IsUnique();
             entity.HasIndex(e => e.TenantId);
+            entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CronSecretRegistry>(entity =>
+        {
+            entity.ToTable("cron_secret_registry");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.TenantId).HasColumnName("tenant_id");
+            entity.Property(e => e.SchemaName).HasColumnName("schema_name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.SecretKey).HasColumnName("secret_key").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.SecretKey).IsUnique();
+            entity.HasIndex(e => e.TenantId).IsUnique();
             entity.HasOne(e => e.Tenant).WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
     }

@@ -67,6 +67,13 @@ public interface IUnitOfWork : IAsyncDisposable
     IBiometricUserMapRepository BiometricUserMaps { get; }
     IBiometricPunchLogRepository BiometricPunchLogs { get; }
     IBiometricDeviceRegistryRepository BiometricDeviceRegistries { get; }
+    IRoleRepository Roles { get; }
+    IAcademicSessionRepository AcademicSessions { get; }
+    IDatabaseBackupRepository DatabaseBackups { get; }
+    ILoginLogRepository LoginLogs { get; }
+    IEmailSettingsRepository EmailSettings { get; }
+    ISmsSettingsRepository SmsSettings { get; }
+    ICronSecretRegistryRepository CronSecretRegistries { get; }
     Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTenantTransactionAsync(CancellationToken cancellationToken = default);

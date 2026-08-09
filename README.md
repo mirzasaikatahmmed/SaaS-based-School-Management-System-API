@@ -36,6 +36,9 @@ Multi-tenant school management API built with **.NET 10**. Each school gets an i
 | **Global settings** | Platform-wide institute, currency, timezone, upload limits (Super Admin) |
 | **School settings** | Per-school general/panel/payment gateways + logo uploads |
 | **Biometric attendance** | ZKTeco K40-H multi-device ADMS push protocol; auto student/employee/exam attendance from fingerprint punches |
+| **Settings module** | Roles/permissions matrix, sessions, cron jobs, DB backup, login log, attendance type, accounting links |
+| **Email gateway** | Per-school SMTP (TLS/SSL), encrypted password, event templates + test send |
+| **SMS gateway** | BulkSMSBD.net (default): send / send-many / balance, event templates + test SMS |
 
 ---
 
@@ -153,14 +156,20 @@ make push TAG=v1.0
 | `/api/office-accounting` | Accounts, deposits, expenses, transactions |
 | `/api/messages` | Mailbox (inbox/sent/important/trash) |
 | `/api/settings/global` | Platform global settings (Super Admin) |
-| `/api/settings/school` | Per-school settings + logos |
+| `/api/settings/school` | Per-school settings, logos, attendance type, accounting links, **email/SMS gateways** |
+| `/api/roles`, `/api/sessions` | Role permission matrix; academic sessions |
+| `/api/settings/cron`, `/cron_api` | Cron secret + scheduled SMS/email/fees/homework jobs |
+| `/api/settings/backup` | Tenant schema backup / restore (MinIO) |
+| `/api/settings/login-log` | Staff / student / parent login audit |
 | `/api/biometric` | Devices, PIN↔person maps, punch logs (Admin) |
 | `/iclock` | ZKTeco ADMS device push endpoint (anonymous, plain text) |
 
 Interactive docs: **Swagger** at http://localhost:5000/swagger (Development).  
 Swagger title/banner shows a live **endpoint counter** (GET / POST / PATCH / DELETE breakdown).
 
-Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–27**)  
+Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–30**)  
+- Email gateway: [`docs/modules/29-email-gateway.md`](docs/modules/29-email-gateway.md)  
+- SMS gateway (BulkSMSBD): [`docs/modules/30-sms-gateway.md`](docs/modules/30-sms-gateway.md)  
 System workflow: [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
 
 ---

@@ -75,5 +75,15 @@ public static class AppConstants
         public const string AccountingExpenses = "accounting/expenses";
         public const string Messages = "messages";
         public const string SettingsLogos = "settings/logos";
+        public const string DbBackups = "db-backups";
+    }
+
+    /// <summary>CRUD action keys used by the Roles & Permissions matrix and [AuthorizePermission].</summary>
+    public static class PermissionActions
+    {
+        public const string View = "View";
+        public const string Add = "Add";
+        public const string Edit = "Edit";
+        public const string Delete = "Delete";
     }
 }

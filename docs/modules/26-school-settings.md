@@ -20,3 +20,5 @@ Per-tenant `school_settings` row (general, student/parent panel, payment gateway
 
 Payment gateways stored as JSONB (`payment_gateways` + `active_gateways`).  
 Logos → MinIO `settings/logos/{type}.*`
+
+**Also under this prefix (module 28+):** attendance type, accounting links, email SMTP, SMS (BulkSMSBD) — see [28-settings.md](./28-settings.md), [29-email-gateway.md](./29-email-gateway.md), [30-sms-gateway.md](./30-sms-gateway.md).

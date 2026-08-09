@@ -49,6 +49,7 @@ public class StudentAttendanceService(
             ClassId = classId,
             SectionId = sectionId,
             AttendanceDate = date.Date,
+            AttendanceType = await ResolveAttendanceTypeAsync(ct),
             Items = items
         };
     }
@@ -155,7 +156,22 @@ public class StudentAttendanceService(
     {
         if (string.IsNullOrEmpty(tenant.SchemaName))
             throw new AppException("X-Tenant-ID header is required.", 400);
-        await provisioner.EnsureGradesAttendanceLibraryEventsModuleAsync(tenant.SchemaName!, ct);
+        await provisioner.EnsureSettingsModuleAsync(tenant.SchemaName!, ct);
+    }
+
+    private async Task<string> ResolveAttendanceTypeAsync(CancellationToken ct)
+    {
+        try
+        {
+            var settings = await uow.SchoolSettings.GetOrCreateAsync(ct);
+            return AttendanceTypes.IsValid(settings.AttendanceType)
+                ? settings.AttendanceType
+                : AttendanceTypes.DayWise;
+        }
+        catch
+        {
+            return AttendanceTypes.DayWise;
+        }
     }
 
     private HashSet<string> Roles()

@@ -53,10 +53,33 @@ public class Role
     /// <summary>ahskbera roles.is_system ("1"/"0").</summary>
     public bool IsSystem { get; set; } = true;
 
+    /// <summary>Custom (non-system) roles can be deactivated without deleting them.</summary>
+    public bool IsActive { get; set; } = true;
+
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public ICollection<RolePermission> Permissions { get; set; } = new List<RolePermission>();
+}
+
+/// <summary>
+/// Per-role, per-feature CRUD permission matrix. Feature keys come from the static
+/// <see cref="SchoolManagement.Common.Constants.AppFeatures"/> catalog (e.g. "Student.StudentList").
+/// </summary>
+public class RolePermission
+{
+    public Guid Id { get; set; }
+    public Guid RoleId { get; set; }
+    public string FeatureKey { get; set; } = string.Empty;
+    public bool CanView { get; set; }
+    public bool CanAdd { get; set; }
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public Role Role { get; set; } = null!;
 }
 
 public class UserRole

@@ -36,6 +36,7 @@ public class AuthService : IAuthService
     public async Task<LoginResponseDto> LoginAsync(
         LoginRequestDto request,
         string? ipAddress,
+        string? userAgent = null,
         CancellationToken cancellationToken = default)
     {
         var superAdmin = await _tenantRepository.GetSuperAdminByEmailAsync(request.Email, cancellationToken);
@@ -145,6 +146,8 @@ public class AuthService : IAuthService
             UserId = user.Id,
             Role = roles.FirstOrDefault() ?? string.Empty,
             Ip = ipAddress ?? "unknown",
+            Browser = ParseBrowser(userAgent),
+            Platform = ParsePlatform(userAgent),
             Timestamp = DateTime.UtcNow
         }, cancellationToken);
 
@@ -377,4 +380,26 @@ public class AuthService : IAuthService
         Roles = [AppConstants.Roles.SuperAdmin],
         IsSuperAdmin = true
     };
+
+    private static string? ParseBrowser(string? ua)
+    {
+        if (string.IsNullOrWhiteSpace(ua)) return null;
+        if (ua.Contains("Edg/", StringComparison.OrdinalIgnoreCase)) return "Edge";
+        if (ua.Contains("Chrome/", StringComparison.OrdinalIgnoreCase)) return "Chrome";
+        if (ua.Contains("Firefox/", StringComparison.OrdinalIgnoreCase)) return "Firefox";
+        if (ua.Contains("Safari/", StringComparison.OrdinalIgnoreCase) && !ua.Contains("Chrome/", StringComparison.OrdinalIgnoreCase)) return "Safari";
+        if (ua.Contains("MSIE", StringComparison.OrdinalIgnoreCase) || ua.Contains("Trident/", StringComparison.OrdinalIgnoreCase)) return "IE";
+        return "Other";
+    }
+
+    private static string? ParsePlatform(string? ua)
+    {
+        if (string.IsNullOrWhiteSpace(ua)) return null;
+        if (ua.Contains("Android", StringComparison.OrdinalIgnoreCase)) return "Android";
+        if (ua.Contains("iPhone", StringComparison.OrdinalIgnoreCase) || ua.Contains("iPad", StringComparison.OrdinalIgnoreCase)) return "iOS";
+        if (ua.Contains("Windows", StringComparison.OrdinalIgnoreCase)) return "Windows";
+        if (ua.Contains("Mac OS", StringComparison.OrdinalIgnoreCase) || ua.Contains("Macintosh", StringComparison.OrdinalIgnoreCase)) return "macOS";
+        if (ua.Contains("Linux", StringComparison.OrdinalIgnoreCase)) return "Linux";
+        return "Other";
+    }
 }

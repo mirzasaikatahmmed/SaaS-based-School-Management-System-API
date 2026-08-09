@@ -32,6 +32,8 @@ public class StudentAttendanceForDateResponseDto
     public Guid ClassId { get; set; }
     public Guid SectionId { get; set; }
     public DateTime AttendanceDate { get; set; }
+    /// <summary>DayWise | SubjectWise — from school settings. Does not affect SuperAdmin.</summary>
+    public string AttendanceType { get; set; } = "DayWise";
     public List<StudentAttendanceRowDto> Items { get; set; } = [];
 }
 

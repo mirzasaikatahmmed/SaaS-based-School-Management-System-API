@@ -42,6 +42,9 @@ Super Admin school/tenant APIs typically omit `X-Tenant-ID` unless acting inside
 | 25 | Global Settings | [25-global-settings.md](./modules/25-global-settings.md) |
 | 26 | School Settings | [26-school-settings.md](./modules/26-school-settings.md) |
 | 27 | Biometric Attendance (ZKTeco K40-H) | [27-biometric-zkteco.md](./modules/27-biometric-zkteco.md) |
+| 28 | Settings (Roles, Sessions, Cron, Backup, Login Log, Email/SMS) | [28-settings.md](./modules/28-settings.md) |
+| 29 | Email Gateway (SMTP) | [29-email-gateway.md](./modules/29-email-gateway.md) |
+| 30 | SMS Gateway (BulkSMSBD.net) | [30-sms-gateway.md](./modules/30-sms-gateway.md) |
 
 ## Typical end-to-end workflow
 
