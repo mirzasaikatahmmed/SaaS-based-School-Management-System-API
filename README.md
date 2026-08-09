@@ -174,7 +174,8 @@ make push TAG=v1.0
 Interactive docs: **Swagger** at http://localhost:5000/swagger (Development).  
 Swagger title/banner shows a live **endpoint counter** (GET / POST / PATCH / DELETE breakdown).
 
-Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–35**)  
+Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–36**)  
+**Frontend (Next.js) guideline:** [`docs/FRONTEND_DEVELOPMENT_GUIDELINE.md`](docs/FRONTEND_DEVELOPMENT_GUIDELINE.md)  
 - Email gateway: [`docs/modules/29-email-gateway.md`](docs/modules/29-email-gateway.md)  
 - SMS gateway (BulkSMSBD): [`docs/modules/30-sms-gateway.md`](docs/modules/30-sms-gateway.md)  
 - Student reports: [`docs/modules/31-student-reports.md`](docs/modules/31-student-reports.md)  

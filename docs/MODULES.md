@@ -2,7 +2,10 @@
 
 Docs for each module implemented in the current SaaS School Management workflow.
 
-**Full system flow (current + future update guide):** [`SYSTEM_WORKFLOW.md`](./SYSTEM_WORKFLOW.md)
+**Full system flow (current + future update guide):** [`SYSTEM_WORKFLOW.md`](./SYSTEM_WORKFLOW.md)  
+**Frontend (Next.js) build guide — all pages & modules:** [`FRONTEND_DEVELOPMENT_GUIDELINE.md`](./FRONTEND_DEVELOPMENT_GUIDELINE.md)  
+**Implemented app:** `../SaaS-based-School-Management-System-frontend` (Next.js 16 + API client)  
+**Module verification (live):** [`FRONTEND_MODULE_VERIFICATION.md`](./FRONTEND_MODULE_VERIFICATION.md)
 
 All tenant-scoped APIs require:
 
