@@ -50,6 +50,7 @@ Super Admin school/tenant APIs typically omit `X-Tenant-ID` unless acting inside
 | 33 | HR Reports (Leave Reports, Payroll Summary) | [33-hr-reports.md](./modules/33-hr-reports.md) |
 | 34 | Examination Reports (Report Card, Tabulation, Progress) | [34-examination-reports.md](./modules/34-examination-reports.md) |
 | 35 | Student Electives + Additional Subject (SSC GPA) | [35-student-electives.md](./modules/35-student-electives.md) |
+| 36 | Public Website (Frontend endpoints) | [36-public-website.md](./modules/36-public-website.md) |
 
 ## Typical end-to-end workflow
 

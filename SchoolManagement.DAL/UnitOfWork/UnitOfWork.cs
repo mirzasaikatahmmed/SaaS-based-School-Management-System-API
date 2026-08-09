@@ -84,6 +84,7 @@ public class UnitOfWork : IUnitOfWork
     private IEmailSettingsRepository? _emailSettingsRepository;
     private ISmsSettingsRepository? _smsSettingsRepository;
     private ICronSecretRegistryRepository? _cronSecretRegistryRepository;
+    private IWebsiteRepository? _websiteRepository;
     private IDbContextTransaction? _tenantTransaction;
     private bool _disposed;
 
@@ -714,6 +715,15 @@ public class UnitOfWork : IUnitOfWork
 
     public ICronSecretRegistryRepository CronSecretRegistries =>
         _cronSecretRegistryRepository ??= new CronSecretRegistryRepository(_masterContext);
+
+    public IWebsiteRepository Website
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _websiteRepository ??= new WebsiteRepository(_tenantContextDb!);
+        }
+    }
 
     public async Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default)
     {

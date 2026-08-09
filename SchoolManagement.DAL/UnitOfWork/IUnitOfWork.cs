@@ -76,6 +76,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IEmailSettingsRepository EmailSettings { get; }
     ISmsSettingsRepository SmsSettings { get; }
     ICronSecretRegistryRepository CronSecretRegistries { get; }
+    IWebsiteRepository Website { get; }
     Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTenantTransactionAsync(CancellationToken cancellationToken = default);

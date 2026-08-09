@@ -115,6 +115,25 @@ public class TenantDbContext : DbContext
     public DbSet<SmsSettings> SmsSettings => Set<SmsSettings>();
     public DbSet<SmsTemplate> SmsTemplates => Set<SmsTemplate>();
     public DbSet<NotificationDispatchLog> NotificationDispatchLogs => Set<NotificationDispatchLog>();
+    public DbSet<WebsiteCmsSettings> WebsiteCmsSettings => Set<WebsiteCmsSettings>();
+    public DbSet<WebsiteMenuItem> WebsiteMenuItems => Set<WebsiteMenuItem>();
+    public DbSet<WebsiteFooterLink> WebsiteFooterLinks => Set<WebsiteFooterLink>();
+    public DbSet<WebsiteSliderItem> WebsiteSliderItems => Set<WebsiteSliderItem>();
+    public DbSet<WebsiteImportantLink> WebsiteImportantLinks => Set<WebsiteImportantLink>();
+    public DbSet<WebsiteSpeech> WebsiteSpeeches => Set<WebsiteSpeech>();
+    public DbSet<WebsiteTenurePerson> WebsiteTenurePeople => Set<WebsiteTenurePerson>();
+    public DbSet<WebsiteCommitteeMember> WebsiteCommitteeMembers => Set<WebsiteCommitteeMember>();
+    public DbSet<WebsiteNotice> WebsiteNotices => Set<WebsiteNotice>();
+    public DbSet<WebsiteGalleryCategory> WebsiteGalleryCategories => Set<WebsiteGalleryCategory>();
+    public DbSet<WebsiteGalleryItem> WebsiteGalleryItems => Set<WebsiteGalleryItem>();
+    public DbSet<WebsiteDocument> WebsiteDocuments => Set<WebsiteDocument>();
+    public DbSet<WebsiteContentPage> WebsiteContentPages => Set<WebsiteContentPage>();
+    public DbSet<WebsiteHandnote> WebsiteHandnotes => Set<WebsiteHandnote>();
+    public DbSet<WebsiteOnlineClassVideo> WebsiteOnlineClassVideos => Set<WebsiteOnlineClassVideo>();
+    public DbSet<WebsiteResultAnalyticsRow> WebsiteResultAnalyticsRows => Set<WebsiteResultAnalyticsRow>();
+    public DbSet<WebsitePublishedResult> WebsitePublishedResults => Set<WebsitePublishedResult>();
+    public DbSet<WebsiteVisitorDaily> WebsiteVisitorDailies => Set<WebsiteVisitorDaily>();
+    public DbSet<WebsiteContactMessage> WebsiteContactMessages => Set<WebsiteContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1856,6 +1875,303 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.RunDate).HasColumnName("run_date");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.HasIndex(e => new { e.JobName, e.EntityKey, e.RunDate }).IsUnique();
+        });
+
+        modelBuilder.Entity<WebsiteCmsSettings>(entity =>
+        {
+            entity.ToTable("website_cms_settings", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.SchoolNameBn).HasColumnName("school_name_bn").HasMaxLength(300);
+            entity.Property(e => e.FacebookUrl).HasColumnName("facebook_url").HasMaxLength(500);
+            entity.Property(e => e.YoutubeUrl).HasColumnName("youtube_url").HasMaxLength(500);
+            entity.Property(e => e.FacebookPageUrl).HasColumnName("facebook_page_url").HasMaxLength(500);
+            entity.Property(e => e.PortalUrl).HasColumnName("portal_url").HasMaxLength(300).HasDefaultValue("/portal");
+            entity.Property(e => e.CopyrightText).HasColumnName("copyright_text").HasMaxLength(500);
+            entity.Property(e => e.OnlineAdmissionEnabled).HasColumnName("online_admission_enabled").HasDefaultValue(true);
+            entity.Property(e => e.Eiin).HasColumnName("eiin").HasMaxLength(50);
+            entity.Property(e => e.EstablishedYear).HasColumnName("established_year");
+            entity.Property(e => e.SchoolType).HasColumnName("school_type").HasMaxLength(100);
+            entity.Property(e => e.ClassesOffered).HasColumnName("classes_offered").HasMaxLength(200);
+            entity.Property(e => e.TotalStudentsLabel).HasColumnName("total_students_label").HasMaxLength(50);
+            entity.Property(e => e.HistoryImageUrl).HasColumnName("history_image_url").HasMaxLength(500);
+            entity.Property(e => e.HistoryTitle).HasColumnName("history_title").HasMaxLength(200);
+            entity.Property(e => e.HistoryTitleBn).HasColumnName("history_title_bn").HasMaxLength(200);
+            entity.Property(e => e.HistorySectionsJson).HasColumnName("history_sections_json").HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(e => e.FoundingCommitteeJson).HasColumnName("founding_committee_json").HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(e => e.ContactPageTitle).HasColumnName("contact_page_title").HasMaxLength(200);
+            entity.Property(e => e.ContactBoxTitle).HasColumnName("contact_box_title").HasMaxLength(300);
+            entity.Property(e => e.ContactBoxDescription).HasColumnName("contact_box_description").HasMaxLength(1000);
+            entity.Property(e => e.ContactMapIframeHtml).HasColumnName("contact_map_iframe_html");
+            entity.Property(e => e.ContactSubmitButtonText).HasColumnName("contact_submit_button_text").HasMaxLength(100).HasDefaultValue("Send");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<WebsiteMenuItem>(entity =>
+        {
+            entity.ToTable("website_menu_items", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.TitleBn).HasColumnName("title_bn").HasMaxLength(200);
+            entity.Property(e => e.Path).HasColumnName("path").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.ParentId).HasColumnName("parent_id");
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.OpenInNewTab).HasColumnName("open_in_new_tab").HasDefaultValue(false);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.HasOne(e => e.Parent).WithMany(e => e.Children).HasForeignKey(e => e.ParentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WebsiteFooterLink>(entity =>
+        {
+            entity.ToTable("website_footer_links", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ColumnKey).HasColumnName("column_key").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.ColumnTitle).HasColumnName("column_title").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.ColumnTitleBn).HasColumnName("column_title_bn").HasMaxLength(200);
+            entity.Property(e => e.Label).HasColumnName("label").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.LabelBn).HasColumnName("label_bn").HasMaxLength(200);
+            entity.Property(e => e.Path).HasColumnName("path").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.IsExternal).HasColumnName("is_external").HasDefaultValue(false);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<WebsiteSliderItem>(entity =>
+        {
+            entity.ToTable("website_slider_items", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.Caption).HasColumnName("caption").HasMaxLength(500);
+            entity.Property(e => e.ButtonText).HasColumnName("button_text").HasMaxLength(100);
+            entity.Property(e => e.ButtonUrl).HasColumnName("button_url").HasMaxLength(500);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<WebsiteImportantLink>(entity =>
+        {
+            entity.ToTable("website_important_links", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Label).HasColumnName("label").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Url).HasColumnName("url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<WebsiteSpeech>(entity =>
+        {
+            entity.ToTable("website_speeches", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Role).HasColumnName("role").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.TitleBn).HasColumnName("title_bn").HasMaxLength(200);
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.NameBn).HasColumnName("name_bn").HasMaxLength(200);
+            entity.Property(e => e.Designation).HasColumnName("designation").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.DesignationBn).HasColumnName("designation_bn").HasMaxLength(200);
+            entity.Property(e => e.PhotoUrl).HasColumnName("photo_url").HasMaxLength(500);
+            entity.Property(e => e.MessageHtml).HasColumnName("message_html").IsRequired();
+            entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(100);
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
+            entity.Property(e => e.FacebookUrl).HasColumnName("facebook_url").HasMaxLength(500);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.Role);
+        });
+
+        modelBuilder.Entity<WebsiteTenurePerson>(entity =>
+        {
+            entity.ToTable("website_tenure_people", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Kind).HasColumnName("kind").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(300).IsRequired();
+            entity.Property(e => e.Designation).HasColumnName("designation").HasMaxLength(300);
+            entity.Property(e => e.JoinedOn).HasColumnName("joined_on");
+            entity.Property(e => e.LeftOn).HasColumnName("left_on");
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.HasIndex(e => e.Kind);
+        });
+
+        modelBuilder.Entity<WebsiteCommitteeMember>(entity =>
+        {
+            entity.ToTable("website_committee_members", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.CategoryBn).HasColumnName("category_bn").HasMaxLength(200);
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Designation).HasColumnName("designation").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.PhotoUrl).HasColumnName("photo_url").HasMaxLength(500);
+            entity.Property(e => e.MobileNo).HasColumnName("mobile_no").HasMaxLength(100);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<WebsiteNotice>(entity =>
+        {
+            entity.ToTable("website_notices", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.PublishedOn).HasColumnName("published_on");
+            entity.Property(e => e.Subject).HasColumnName("subject").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.BodyHtml).HasColumnName("body_html");
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<WebsiteGalleryCategory>(entity =>
+        {
+            entity.ToTable("website_gallery_categories", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<WebsiteGalleryItem>(entity =>
+        {
+            entity.ToTable("website_gallery_items", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CategoryId).HasColumnName("category_id");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(300).IsRequired();
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.ThumbUrl).HasColumnName("thumb_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.ExtraImagesJson).HasColumnName("extra_images_json").HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(e => e.EventDate).HasColumnName("event_date");
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.HasOne(e => e.Category).WithMany(c => c.Items).HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<WebsiteDocument>(entity =>
+        {
+            entity.ToTable("website_documents", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(400).IsRequired();
+            entity.Property(e => e.TitleBn).HasColumnName("title_bn").HasMaxLength(400);
+            entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(50).IsRequired().HasDefaultValue("other");
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.PublishedOn).HasColumnName("published_on");
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<WebsiteContentPage>(entity =>
+        {
+            entity.ToTable("website_content_pages", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Slug).HasColumnName("slug").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(300).IsRequired();
+            entity.Property(e => e.TitleBn).HasColumnName("title_bn").HasMaxLength(300);
+            entity.Property(e => e.BodyHtml).HasColumnName("body_html");
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.Slug).IsUnique();
+        });
+
+        modelBuilder.Entity<WebsiteHandnote>(entity =>
+        {
+            entity.ToTable("website_handnotes", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.PublishedOn).HasColumnName("published_on");
+            entity.Property(e => e.ClassName).HasColumnName("class_name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(300).IsRequired();
+            entity.Property(e => e.TeacherName).HasColumnName("teacher_name").HasMaxLength(200);
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<WebsiteOnlineClassVideo>(entity =>
+        {
+            entity.ToTable("website_online_class_videos", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ClassName).HasColumnName("class_name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(400).IsRequired();
+            entity.Property(e => e.Subject).HasColumnName("subject").HasMaxLength(200);
+            entity.Property(e => e.TeacherName).HasColumnName("teacher_name").HasMaxLength(200);
+            entity.Property(e => e.YoutubeUrl).HasColumnName("youtube_url").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.YoutubeVideoId).HasColumnName("youtube_video_id").HasMaxLength(50);
+            entity.Property(e => e.ClassDate).HasColumnName("class_date");
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.HasIndex(e => e.ClassName);
+        });
+
+        modelBuilder.Entity<WebsiteResultAnalyticsRow>(entity =>
+        {
+            entity.ToTable("website_result_analytics", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ExamType).HasColumnName("exam_type").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Year).HasColumnName("year");
+            entity.Property(e => e.Appeared).HasColumnName("appeared").HasDefaultValue(0);
+            entity.Property(e => e.Passed).HasColumnName("passed").HasDefaultValue(0);
+            entity.Property(e => e.NotPassed).HasColumnName("not_passed").HasDefaultValue(0);
+            entity.Property(e => e.PassPercent).HasColumnName("pass_percent").HasPrecision(6, 2);
+            entity.Property(e => e.Gpa5).HasColumnName("gpa5").HasDefaultValue(0);
+            entity.Property(e => e.Gpa5Percent).HasColumnName("gpa5_percent").HasPrecision(6, 2);
+            entity.Property(e => e.Gpa4x).HasColumnName("gpa4x").HasDefaultValue(0);
+            entity.Property(e => e.Gpa3x).HasColumnName("gpa3x").HasDefaultValue(0);
+            entity.Property(e => e.Gpa2x).HasColumnName("gpa2x").HasDefaultValue(0);
+            entity.Property(e => e.Gpa1x).HasColumnName("gpa1x").HasDefaultValue(0);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.HasIndex(e => new { e.ExamType, e.Year }).IsUnique();
+        });
+
+        modelBuilder.Entity<WebsitePublishedResult>(entity =>
+        {
+            entity.ToTable("website_published_results", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(400).IsRequired();
+            entity.Property(e => e.TitleBn).HasColumnName("title_bn").HasMaxLength(400);
+            entity.Property(e => e.ExamType).HasColumnName("exam_type").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Year).HasColumnName("year");
+            entity.Property(e => e.DetailUrl).HasColumnName("detail_url").HasMaxLength(500);
+            entity.Property(e => e.FileUrl).HasColumnName("file_url").HasMaxLength(500);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+        });
+
+        modelBuilder.Entity<WebsiteVisitorDaily>(entity =>
+        {
+            entity.ToTable("website_visitor_daily", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.VisitDate).HasColumnName("visit_date");
+            entity.Property(e => e.Views).HasColumnName("views").HasDefaultValue(0);
+            entity.HasIndex(e => e.VisitDate).IsUnique();
+        });
+
+        modelBuilder.Entity<WebsiteContactMessage>(entity =>
+        {
+            entity.ToTable("website_contact_messages", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(100);
+            entity.Property(e => e.Subject).HasColumnName("subject").HasMaxLength(300);
+            entity.Property(e => e.Message).HasColumnName("message").IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.IsRead).HasColumnName("is_read").HasDefaultValue(false);
         });
     }
 }

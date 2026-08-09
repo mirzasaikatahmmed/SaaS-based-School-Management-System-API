@@ -283,6 +283,7 @@ erDiagram
 | Operate directory | Student List | [07](./modules/07-student-list.md) |
 | Exit / hold | Deactivate reasons, Login deactivate | [08](./modules/08-deactivate-reasons.md), [09](./modules/09-login-deactivate.md) |
 | Family | Parents, Parent login deactivate | [10](./modules/10-parents.md), [11](./modules/11-parent-login-deactivate.md) |
+| Public website | Frontend endpoints (home, about, staff, notices…) | [36](./modules/36-public-website.md) |
 
 ---
 
@@ -298,6 +299,7 @@ When these land, extend the diagrams above and add module docs:
 | Transport ops | Live routes beyond lookup seed |
 | Hostel ops | Allocation workflows beyond lookup |
 | Messaging | SMS/email notifications, announcements (in-app mailbox: module 24) |
+| Public CMS backend | Admin CRUD for website content (public GETs live: [36](./modules/36-public-website.md)) |
 | Analytics | Dashboards beyond school stats |
 | Mobile apps | Dedicated client apps |
 

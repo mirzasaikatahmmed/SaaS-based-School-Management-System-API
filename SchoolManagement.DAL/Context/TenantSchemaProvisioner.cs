@@ -24,6 +24,7 @@ public interface ITenantSchemaProvisioner
     Task EnsureMessageAndSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureBiometricModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureWebsiteModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -136,6 +137,7 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
         await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
         await EnsureAdmissionModuleAsync(schemaName, cancellationToken);
+        await EnsureWebsiteModuleAsync(schemaName, cancellationToken);
     }
 
     public async Task EnsureAdmissionModuleAsync(string schemaName, CancellationToken cancellationToken = default)
@@ -1919,6 +1921,266 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             """;
 
         sql = sql.Replace("__EMPTY_JSON_OBJECT__", "{{}}");
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    public async Task EnsureWebsiteModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureSettingsModuleAsync(schemaName, cancellationToken);
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_cms_settings (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                school_name_bn VARCHAR(300),
+                facebook_url VARCHAR(500),
+                youtube_url VARCHAR(500),
+                facebook_page_url VARCHAR(500),
+                portal_url VARCHAR(300) DEFAULT '/portal',
+                copyright_text VARCHAR(500),
+                online_admission_enabled BOOLEAN NOT NULL DEFAULT true,
+                eiin VARCHAR(50),
+                established_year INT,
+                school_type VARCHAR(100),
+                classes_offered VARCHAR(200),
+                total_students_label VARCHAR(50),
+                history_image_url VARCHAR(500),
+                history_title VARCHAR(200),
+                history_title_bn VARCHAR(200),
+                history_sections_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+                founding_committee_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+                contact_page_title VARCHAR(200),
+                contact_box_title VARCHAR(300),
+                contact_box_description VARCHAR(1000),
+                contact_map_iframe_html TEXT,
+                contact_submit_button_text VARCHAR(100) DEFAULT 'Send',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_menu_items (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(200) NOT NULL,
+                title_bn VARCHAR(200),
+                path VARCHAR(500) NOT NULL,
+                parent_id UUID REFERENCES "{schemaName}".website_menu_items(id),
+                sort_order INT NOT NULL DEFAULT 0,
+                open_in_new_tab BOOLEAN NOT NULL DEFAULT false,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_footer_links (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                column_key VARCHAR(50) NOT NULL,
+                column_title VARCHAR(200) NOT NULL,
+                column_title_bn VARCHAR(200),
+                label VARCHAR(200) NOT NULL,
+                label_bn VARCHAR(200),
+                path VARCHAR(500) NOT NULL,
+                is_external BOOLEAN NOT NULL DEFAULT false,
+                sort_order INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_slider_items (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                image_url VARCHAR(500) NOT NULL,
+                caption VARCHAR(500),
+                button_text VARCHAR(100),
+                button_url VARCHAR(500),
+                sort_order INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_important_links (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                label VARCHAR(200) NOT NULL,
+                url VARCHAR(500) NOT NULL,
+                sort_order INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_speeches (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                role VARCHAR(50) NOT NULL,
+                title VARCHAR(200) NOT NULL,
+                title_bn VARCHAR(200),
+                name VARCHAR(200) NOT NULL,
+                name_bn VARCHAR(200),
+                designation VARCHAR(200) NOT NULL,
+                designation_bn VARCHAR(200),
+                photo_url VARCHAR(500),
+                message_html TEXT NOT NULL,
+                phone VARCHAR(100),
+                email VARCHAR(255),
+                facebook_url VARCHAR(500),
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_tenure_people (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                kind VARCHAR(50) NOT NULL,
+                name VARCHAR(300) NOT NULL,
+                designation VARCHAR(300),
+                joined_on DATE,
+                left_on DATE,
+                sort_order INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_committee_members (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                category VARCHAR(100) NOT NULL,
+                category_bn VARCHAR(200),
+                name VARCHAR(200) NOT NULL,
+                designation VARCHAR(200) NOT NULL,
+                photo_url VARCHAR(500),
+                mobile_no VARCHAR(100),
+                sort_order INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_notices (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                published_on DATE NOT NULL DEFAULT CURRENT_DATE,
+                subject VARCHAR(500) NOT NULL,
+                body_html TEXT,
+                file_url VARCHAR(500),
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_gallery_categories (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_gallery_items (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                category_id UUID REFERENCES "{schemaName}".website_gallery_categories(id) ON DELETE SET NULL,
+                title VARCHAR(300) NOT NULL,
+                description TEXT,
+                thumb_url VARCHAR(500) NOT NULL,
+                image_url VARCHAR(500) NOT NULL,
+                extra_images_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+                event_date DATE,
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_documents (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(400) NOT NULL,
+                title_bn VARCHAR(400),
+                category VARCHAR(50) NOT NULL DEFAULT 'other',
+                file_url VARCHAR(500) NOT NULL,
+                published_on DATE,
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_content_pages (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug VARCHAR(100) NOT NULL UNIQUE,
+                title VARCHAR(300) NOT NULL,
+                title_bn VARCHAR(300),
+                body_html TEXT,
+                file_url VARCHAR(500),
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_handnotes (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                published_on DATE NOT NULL DEFAULT CURRENT_DATE,
+                class_name VARCHAR(100) NOT NULL,
+                title VARCHAR(300) NOT NULL,
+                teacher_name VARCHAR(200),
+                file_url VARCHAR(500) NOT NULL,
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_online_class_videos (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                class_name VARCHAR(100) NOT NULL,
+                title VARCHAR(400) NOT NULL,
+                subject VARCHAR(200),
+                teacher_name VARCHAR(200),
+                youtube_url VARCHAR(500) NOT NULL,
+                youtube_video_id VARCHAR(50),
+                class_date DATE,
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_result_analytics (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                exam_type VARCHAR(50) NOT NULL,
+                year INT NOT NULL,
+                appeared INT NOT NULL DEFAULT 0,
+                passed INT NOT NULL DEFAULT 0,
+                not_passed INT NOT NULL DEFAULT 0,
+                pass_percent NUMERIC(6,2) NOT NULL DEFAULT 0,
+                gpa5 INT NOT NULL DEFAULT 0,
+                gpa5_percent NUMERIC(6,2) NOT NULL DEFAULT 0,
+                gpa4x INT NOT NULL DEFAULT 0,
+                gpa3x INT NOT NULL DEFAULT 0,
+                gpa2x INT NOT NULL DEFAULT 0,
+                gpa1x INT NOT NULL DEFAULT 0,
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                UNIQUE(exam_type, year)
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_published_results (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(400) NOT NULL,
+                title_bn VARCHAR(400),
+                exam_type VARCHAR(50) NOT NULL,
+                year INT NOT NULL,
+                detail_url VARCHAR(500),
+                file_url VARCHAR(500),
+                is_published BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_visitor_daily (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                visit_date DATE NOT NULL UNIQUE,
+                views INT NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".website_contact_messages (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(100),
+                subject VARCHAR(300),
+                message TEXT NOT NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                is_read BOOLEAN NOT NULL DEFAULT false
+            );
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809212831_AddPublicWebsite', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809213617_AddPublicAcademic', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809214430_AddPublicStudentsResults', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
         await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 

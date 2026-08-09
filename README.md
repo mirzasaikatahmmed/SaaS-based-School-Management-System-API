@@ -182,6 +182,7 @@ Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–35**)
 - HR reports: [`docs/modules/33-hr-reports.md`](docs/modules/33-hr-reports.md)  
 - Examination reports: [`docs/modules/34-examination-reports.md`](docs/modules/34-examination-reports.md)  
 - Student electives: [`docs/modules/35-student-electives.md`](docs/modules/35-student-electives.md)  
+- Public website (frontend endpoints): [`docs/modules/36-public-website.md`](docs/modules/36-public-website.md)  
 System workflow: [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
 
 ---

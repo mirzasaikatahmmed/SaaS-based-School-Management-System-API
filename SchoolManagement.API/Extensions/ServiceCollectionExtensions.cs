@@ -98,6 +98,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBookIssueService, BookIssueService>();
         services.AddScoped<IEventTypeService, EventTypeService>();
         services.AddScoped<IEventService, EventService>();
+        services.AddScoped<IPublicWebsiteService, PublicWebsiteService>();
         services.AddScoped<IFeesTypeService, FeesTypeService>();
         services.AddScoped<IFeesGroupService, FeesGroupService>();
         services.AddScoped<IFeesAllocationService, FeesAllocationService>();
