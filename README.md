@@ -1,6 +1,6 @@
 # SaaS School Management System
 
-Multi-tenant school management API built with **.NET 10** — admissions, students, parents, auth, and file storage. Each school gets an isolated PostgreSQL schema and MinIO bucket.
+Multi-tenant school management API built with **.NET 10**. Each school gets an isolated PostgreSQL schema (`tenant_{slug}`) and MinIO bucket (`school-{slug}`).
 
 **Docker image:** [`mirzasaikatahmmed/saas-based-school-management-system-api`](https://hub.docker.com/r/mirzasaikatahmmed/saas-based-school-management-system-api)
 
@@ -10,16 +10,22 @@ Multi-tenant school management API built with **.NET 10** — admissions, studen
 
 | Area | Capabilities |
 |------|----------------|
-| **Auth & tenancy** | JWT login/refresh, schema-per-tenant (`tenant_{slug}`), per-school MinIO buckets |
-| **Schools** | Super Admin school provisioning, branding, stats, export |
-| **Admission** | Create/update students, guardians, lookups (class/section/category/hostel/transport) |
+| **Auth & tenancy** | JWT login/refresh, schema-per-tenant, per-school MinIO buckets |
+| **Schools** | Super Admin provisioning, branding, settings, stats, export |
+| **Admission** | Create/update students & guardians; class/section/category lookups |
 | **Online admission** | Public apply/track; admin approve/decline/payment/export |
 | **CSV import** | Bulk student import with partial success and failed-row export |
 | **Student categories** | Tenant-scoped category CRUD |
-| **Student list** | Filter, search, bulk soft-delete, export, login toggle, deactivate/reactivate |
+| **Student list** | Filter, search, soft-delete, export, login toggle, deactivate/reactivate |
 | **Deactivate reasons** | Master reason labels for student deactivation |
-| **Login deactivate** | Students / parents with deactivated login; bulk re-activate |
-| **Parents** | Guardian directory, standalone add, photo upload, social/alternative fields |
+| **Login deactivate** | Student / parent login enable/disable (bulk supported) |
+| **Parents** | Guardian directory, standalone add, photo upload |
+| **Employees** | Departments, designations, staff CRUD/import, login deactivate |
+| **Payroll** | Salary templates, assign grades, monthly payment, my-salary |
+| **Advance salary & leave** | Advance requests; leave categories & applications |
+| **Awards** | Give awards to employees or students |
+| **Academic** | Classes, sections, subjects, class teachers, timetables, promotion |
+| **Exam Master** | Terms, halls, mark distributions, exam setup, schedules, mark entries |
 
 ---
 
@@ -27,14 +33,16 @@ Multi-tenant school management API built with **.NET 10** — admissions, studen
 
 | Layer | Project | Responsibility |
 |-------|---------|----------------|
-| Presentation | `SchoolManagement.API` | Controllers, middleware, filters, DI |
-| Business | `SchoolManagement.BLL` | Services, DTOs, validators |
+| Presentation | `SchoolManagement.API` | Controllers, middleware, filters, DI, Swagger |
+| Business | `SchoolManagement.BLL` | Services, DTOs, FluentValidation |
 | Data | `SchoolManagement.DAL` | EF Core, repositories, unit of work, schema provisioner |
 | Shared | `SchoolManagement.Common` | Constants, wrappers |
 
-**Multi-tenancy:** school registry in `public.tenants`; tenant data in `tenant_{slug}`; files in `school-{slug}` MinIO bucket. Send `X-Tenant-ID: {slug}` on school-scoped requests.
+**Multi-tenancy:** school registry in `public.tenants`; tenant data in `tenant_{slug}`; files in `school-{slug}`. Send `X-Tenant-ID: {slug}` on school-scoped requests.
 
 Column naming follows the live ahskbera dump (`password`, `mobileno`, `photo`, `active`, role `prefix`). See [`docs/AHSKBERA_SCHEMA_MAPPING.md`](docs/AHSKBERA_SCHEMA_MAPPING.md).
+
+**HTTP convention:** updates use **`PATCH`** (no `PUT` endpoints).
 
 ---
 
@@ -54,12 +62,15 @@ make up
 | MinIO console | http://localhost:9001 (`minioadmin` / `minioadmin123`) |
 | PostgreSQL | `localhost:5432` (`schooladmin` / `schoolpassword`) |
 
+> Docker Compose uses the Hub image. For the latest local code (Exam Master, PATCH, Swagger counter), run **Option B** or `make build` / `make restart` after updating the Dockerfile build path.
+
 ### Option B — Local API + Docker deps
 
 ```bash
 cd SchoolManagement
 docker compose up -d postgres minio
-dotnet run --project SchoolManagement.API
+ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5000 \
+  dotnet run --project SchoolManagement.API --no-launch-profile
 ```
 
 ### Makefile
@@ -107,9 +118,9 @@ make push TAG=v1.0
 
 | Prefix | Module |
 |--------|--------|
-| `/api/auth` | Login, refresh, logout |
+| `/api/auth` | Login, refresh, logout, profile |
 | `/api/tenants`, `/api/schools` | Tenant / school management |
-| `/api/admission` | Student admission CRUD |
+| `/api/admission` | Student admission |
 | `/api/online-admissions` | Online applications |
 | `/api/student-import` | CSV import |
 | `/api/student-categories` | Categories |
@@ -118,11 +129,18 @@ make push TAG=v1.0
 | `/api/login-deactivate` | Student login deactivate |
 | `/api/parents` | Parents / guardians |
 | `/api/parent-login-deactivate` | Parent login deactivate |
+| `/api/departments`, `/api/designations`, `/api/employees` | Staff HR masters |
+| `/api/payroll` | Salary templates, assign, payment |
+| `/api/advance-salary`, `/api/leave` | Advance salary & leave |
+| `/api/awards` | Awards |
+| `/api/academic` | Classes, sections, subjects, schedules, promotion |
+| `/api/exam` | Terms, halls, distributions, exams, schedules, mark entries |
 
-Interactive docs: **Swagger** at `/swagger` when the API is running.
+Interactive docs: **Swagger** at http://localhost:5000/swagger (Development).  
+Swagger title/banner shows a live **endpoint counter** (GET / POST / PATCH / DELETE breakdown).
 
-Per-module workflow docs: [`docs/MODULES.md`](docs/MODULES.md)  
-Full system workflow (current + how to extend): [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
+Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–17**, including [Exam Master](docs/modules/17-exam-master.md))  
+System workflow: [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
 
 ---
 
@@ -131,7 +149,7 @@ Full system workflow (current + how to extend): [`docs/SYSTEM_WORKFLOW.md`](docs
 - .NET 10 / ASP.NET Core  
 - PostgreSQL 16 (EF Core + Npgsql)  
 - MinIO (presigned URLs)  
-- FluentValidation · Docker / Compose  
+- FluentValidation · Swashbuckle · Docker / Compose  
 
 ---
 
