@@ -31,6 +31,7 @@ Class & section control, class teachers, subjects, class subject assignment, cla
 - Classes link sections via `class_sections` (M2M). Existing per-class sections are backfilled into the join.
 - Class teacher: one per class+section (upsert).
 - Subjects: unique **code**; types Theory / Practical / Mandatory / Optional.
+- Class–subject assign: mark **Higher Math** and **Agriculture** as elective (`electiveGroup: "4th"`). Biology is **not** elective — set `canBeAdditional: true` and declare it (or the elective) as Additional Subject for SSC GPA. See [35-student-electives.md](./35-student-electives.md).
 - Schedule: one per class+section+day; periods support **IsBreak** (no subject/teacher).
 - Promotion: updates student class/section/year/roll (or year-only / deactivate) and writes `student_promotions` history.
 

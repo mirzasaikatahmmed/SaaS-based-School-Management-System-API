@@ -43,6 +43,28 @@ public class EventRepository(TenantDbContext context) : IEventRepository
             .Include(e => e.CreatedByUser)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<DateTime>> GetHolidayDatesAsync(
+        DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
+    {
+        var from = fromDate.Date;
+        var to = toDate.Date;
+        var events = await context.Events
+            .Where(e => e.IsActive && e.IsHoliday && e.DateOfEnd.Date >= from && e.DateOfStart.Date <= to)
+            .Select(e => new { e.DateOfStart, e.DateOfEnd })
+            .ToListAsync(cancellationToken);
+
+        var dates = new HashSet<DateTime>();
+        foreach (var ev in events)
+        {
+            var start = ev.DateOfStart.Date < from ? from : ev.DateOfStart.Date;
+            var end = ev.DateOfEnd.Date > to ? to : ev.DateOfEnd.Date;
+            for (var d = start; d <= end; d = d.AddDays(1))
+                dates.Add(d);
+        }
+
+        return dates.OrderBy(d => d).ToList();
+    }
+
     public async Task<IReadOnlyList<SchoolEvent>> GetPublicAsync(CancellationToken cancellationToken = default)
         => await context.Events
             .Include(e => e.EventType)

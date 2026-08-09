@@ -29,6 +29,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IClassTeacherRepository ClassTeachers { get; }
     ISubjectRepository Subjects { get; }
     IClassSubjectAssignmentRepository ClassSubjectAssignments { get; }
+    IStudentSubjectEnrollmentRepository StudentSubjectEnrollments { get; }
     IClassScheduleRepository ClassSchedules { get; }
     IStudentPromotionRepository StudentPromotions { get; }
     IExamTermRepository ExamTerms { get; }
@@ -40,6 +41,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IGradeRangeRepository GradeRanges { get; }
     IExamPositionRepository ExamPositions { get; }
     IStudentAttendanceRepository StudentAttendances { get; }
+    IStudentSubjectAttendanceRepository StudentSubjectAttendances { get; }
     IEmployeeAttendanceRepository EmployeeAttendances { get; }
     IExamAttendanceRepository ExamAttendances { get; }
     IBookCategoryRepository BookCategories { get; }

@@ -47,6 +47,28 @@ public static class AppFeatures
         new("Student.DeactivateReason", "Student", "Deactivate Reason"),
         new("Student.LoginDeactivate", "Student", "Student Login Deactivate"),
 
+        // Student reports
+        new("Reports.StudentLoginCredential", "Reports", "Login Credential Report"),
+        new("Reports.StudentAdmission", "Reports", "Admission Report", ViewOnly: true),
+        new("Reports.StudentClassSection", "Reports", "Class & Section Report", ViewOnly: true),
+        new("Reports.StudentSibling", "Reports", "Sibling Report", ViewOnly: true),
+
+        // Attendance reports
+        new("Reports.AttendanceStudent", "Reports", "Student Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceStudentDaily", "Reports", "Student Daily Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceStudentOverview", "Reports", "Student Overview Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceSubjectWise", "Reports", "Subject Wise Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceSubjectWiseByDay", "Reports", "Subject Wise By Day Report", ViewOnly: true),
+        new("Reports.AttendanceSubjectWiseByMonth", "Reports", "Subject Wise By Month Report", ViewOnly: true),
+        new("Reports.AttendanceEmployee", "Reports", "Employee Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceExam", "Reports", "Exam Attendance Report", ViewOnly: true),
+        new("Reports.AttendanceFingerprint", "Reports", "Fingerprint Attendance Logs", ViewOnly: true),
+        new("Reports.Leave", "Reports", "Leave Reports", ViewOnly: true),
+        new("Reports.PayrollSummary", "Reports", "Payroll Summary", ViewOnly: true),
+        new("Reports.ExamReportCard", "Reports", "Exam Report Card", ViewOnly: true),
+        new("Reports.ExamTabulation", "Reports", "Exam Tabulation Sheet", ViewOnly: true),
+        new("Reports.ExamProgress", "Reports", "Exam Progress Reports", ViewOnly: true),
+
         // Parents
         new("Parents.ParentsList", "Parents", "Parents List"),
         new("Parents.LoginDeactivate", "Parents", "Parent Login Deactivate"),

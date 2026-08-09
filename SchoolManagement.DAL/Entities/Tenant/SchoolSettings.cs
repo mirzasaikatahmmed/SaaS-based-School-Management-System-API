@@ -42,6 +42,10 @@ public class SchoolSettings
 
     // Attendance
     public string AttendanceType { get; set; } = AttendanceTypes.DayWise;
+    /// <summary>
+    /// Comma-separated <see cref="DayOfWeek"/> ints (Sunday=0 … Saturday=6). Default Fri+Sat for BD schools.
+    /// </summary>
+    public string WeekendDays { get; set; } = "5,6";
 
     // Accounting links
     public Guid? DefaultDepositAccountId { get; set; }

@@ -1000,6 +1000,8 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 assignment_id UUID NOT NULL REFERENCES "{schemaName}".class_subject_assignments(id) ON DELETE CASCADE,
                 subject_id UUID NOT NULL REFERENCES "{schemaName}".subjects(id),
+                is_elective BOOLEAN NOT NULL DEFAULT false,
+                elective_group VARCHAR(50),
                 UNIQUE(assignment_id, subject_id)
             );
 
@@ -1744,6 +1746,9 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             ALTER TABLE "{{schemaName}}".roles
                 ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
 
+            ALTER TABLE "{{schemaName}}".users
+                ADD COLUMN IF NOT EXISTS password_reveal_encrypted TEXT;
+
             CREATE TABLE IF NOT EXISTS "{{schemaName}}".role_permissions (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 role_id UUID NOT NULL REFERENCES "{{schemaName}}".roles(id) ON DELETE CASCADE,
@@ -1779,10 +1784,55 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
             ALTER TABLE "{{schemaName}}".school_settings
                 ADD COLUMN IF NOT EXISTS attendance_type VARCHAR(20) NOT NULL DEFAULT 'DayWise',
+                ADD COLUMN IF NOT EXISTS weekend_days VARCHAR(20) NOT NULL DEFAULT '5,6',
                 ADD COLUMN IF NOT EXISTS default_deposit_account_id UUID,
                 ADD COLUMN IF NOT EXISTS default_expense_account_id UUID,
                 ADD COLUMN IF NOT EXISTS accounting_links_enabled BOOLEAN NOT NULL DEFAULT false,
                 ADD COLUMN IF NOT EXISTS cron_secret_key VARCHAR(100);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".student_subject_attendance (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                student_id UUID NOT NULL REFERENCES "{{schemaName}}".students(id),
+                class_id UUID NOT NULL REFERENCES "{{schemaName}}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{{schemaName}}".sections(id),
+                subject_id UUID NOT NULL REFERENCES "{{schemaName}}".subjects(id),
+                attendance_date DATE NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'Present',
+                remarks TEXT,
+                created_by UUID REFERENCES "{{schemaName}}".users(id) ON DELETE SET NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(student_id, subject_id, attendance_date)
+            );
+            CREATE INDEX IF NOT EXISTS idx_student_subject_att_date
+                ON "{{schemaName}}".student_subject_attendance(attendance_date);
+
+            ALTER TABLE "{{schemaName}}".class_subject_assignment_items
+                ADD COLUMN IF NOT EXISTS is_elective BOOLEAN NOT NULL DEFAULT false,
+                ADD COLUMN IF NOT EXISTS elective_group VARCHAR(50);
+
+            ALTER TABLE "{{schemaName}}".subjects
+                ADD COLUMN IF NOT EXISTS can_be_additional BOOLEAN NOT NULL DEFAULT false,
+                ADD COLUMN IF NOT EXISTS is_continuous_assessment BOOLEAN NOT NULL DEFAULT false;
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".student_subject_enrollments (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                student_id UUID NOT NULL REFERENCES "{{schemaName}}".students(id) ON DELETE CASCADE,
+                subject_id UUID NOT NULL REFERENCES "{{schemaName}}".subjects(id),
+                additional_subject_id UUID REFERENCES "{{schemaName}}".subjects(id),
+                class_id UUID NOT NULL REFERENCES "{{schemaName}}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{{schemaName}}".sections(id),
+                academic_year INT NOT NULL,
+                elective_group VARCHAR(50) NOT NULL DEFAULT '4th',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(student_id, elective_group, academic_year),
+                UNIQUE(student_id, subject_id, academic_year)
+            );
+            ALTER TABLE "{{schemaName}}".student_subject_enrollments
+                ADD COLUMN IF NOT EXISTS additional_subject_id UUID REFERENCES "{{schemaName}}".subjects(id);
+            CREATE INDEX IF NOT EXISTS "idx_{{schemaName}}_student_electives_class"
+                ON "{{schemaName}}".student_subject_enrollments (class_id, section_id, academic_year, elective_group);
 
             CREATE TABLE IF NOT EXISTS "{{schemaName}}".email_settings (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1849,6 +1899,22 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
             INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
             VALUES ('20260809202445_AddSettingsModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809204404_AddPasswordRevealAndStudentReports', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809205248_AddAttendanceReports', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809210852_AddStudentElectives', '10.0.0')
+            ON CONFLICT DO NOTHING;
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809211622_AddAdditionalSubjectGpa', '10.0.0')
             ON CONFLICT DO NOTHING;
             """;
 

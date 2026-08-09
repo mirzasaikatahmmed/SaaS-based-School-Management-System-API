@@ -29,19 +29,22 @@ public class ParentService : IParentService
     private readonly ITenantSchemaProvisioner _schemaProvisioner;
     private readonly IStorageService _storageService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPasswordRevealService _passwordReveal;
 
     public ParentService(
         IUnitOfWork unitOfWork,
         ITenantContext tenantContext,
         ITenantSchemaProvisioner schemaProvisioner,
         IStorageService storageService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IPasswordRevealService passwordReveal)
     {
         _unitOfWork = unitOfWork;
         _tenantContext = tenantContext;
         _schemaProvisioner = schemaProvisioner;
         _storageService = storageService;
         _httpContextAccessor = httpContextAccessor;
+        _passwordReveal = passwordReveal;
     }
 
     public async Task<ParentListResponseDto> GetListAsync(
@@ -155,7 +158,6 @@ public class ParentService : IParentService
                 Id = Guid.NewGuid(),
                 Email = email,
                 Username = username,
-                Password = PasswordHelper.HashPassword(dto.Password),
                 FirstName = nameParts[0],
                 LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty,
                 Mobileno = dto.MobileNo.Trim(),
@@ -164,6 +166,7 @@ public class ParentService : IParentService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+            _passwordReveal.Apply(user, dto.Password);
             await _unitOfWork.Users.AddAsync(user, cancellationToken);
             await _unitOfWork.Users.AddUserRoleAsync(new UserRole
             {

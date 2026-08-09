@@ -23,6 +23,8 @@ public class BiometricPunchService(
 
         var from = filter.From.HasValue ? DateTime.SpecifyKind(filter.From.Value, DateTimeKind.Utc) : (DateTime?)null;
         var to = filter.To.HasValue ? DateTime.SpecifyKind(filter.To.Value, DateTimeKind.Utc) : (DateTime?)null;
+        if (to.HasValue && to.Value.TimeOfDay == TimeSpan.Zero)
+            to = to.Value.Date.AddDays(1).AddTicks(-1);
 
         var (items, total) = await uow.BiometricPunchLogs.GetFilteredAsync(
             from, to, filter.DeviceId, filter.Kind, page, size, cancellationToken);

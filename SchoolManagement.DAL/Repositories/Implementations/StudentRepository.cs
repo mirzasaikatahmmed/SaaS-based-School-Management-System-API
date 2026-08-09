@@ -29,6 +29,7 @@ public class StudentRepository : IStudentRepository
             .Include(s => s.Hostel)
             .Include(s => s.Room)
             .Include(s => s.Guardians)
+                .ThenInclude(g => g.User)
             .Include(s => s.User)
             .Include(s => s.DeactivateReasonRef)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
@@ -63,6 +64,7 @@ public class StudentRepository : IStudentRepository
             .Include(s => s.Section)
             .Include(s => s.Category)
             .Include(s => s.Guardians)
+                .ThenInclude(g => g.User)
             .Include(s => s.User)
             .Include(s => s.DeactivateReasonRef)
             .AsQueryable();

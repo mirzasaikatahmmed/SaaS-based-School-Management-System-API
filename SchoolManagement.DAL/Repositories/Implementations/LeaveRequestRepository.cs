@@ -27,6 +27,10 @@ public class LeaveRequestRepository(TenantDbContext context) : ILeaveRequestRepo
             q = q.Where(x => x.Employee.Role.ToLower() == filter.Role.Trim().ToLower());
         if (!string.IsNullOrWhiteSpace(filter.Status))
             q = q.Where(x => x.Status == filter.Status);
+        if (filter.FromDate.HasValue)
+            q = q.Where(x => x.DateOfEnd.Date >= filter.FromDate.Value.Date);
+        if (filter.ToDate.HasValue)
+            q = q.Where(x => x.DateOfStart.Date <= filter.ToDate.Value.Date);
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var s = filter.Search.Trim().ToLower();
@@ -38,7 +42,7 @@ public class LeaveRequestRepository(TenantDbContext context) : ILeaveRequestRepo
 
         var total = await q.CountAsync(cancellationToken);
         var page = filter.Page < 1 ? 1 : filter.Page;
-        var size = filter.PageSize is < 1 or > 200 ? 25 : filter.PageSize;
+        var size = filter.PageSize is < 1 or > 5000 ? 25 : filter.PageSize;
         var items = await q.OrderByDescending(x => x.ApplyDate)
             .Skip((page - 1) * size).Take(size)
             .ToListAsync(cancellationToken);

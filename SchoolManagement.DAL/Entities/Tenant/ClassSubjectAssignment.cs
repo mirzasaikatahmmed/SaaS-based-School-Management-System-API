@@ -18,6 +18,10 @@ public class ClassSubjectAssignmentItem
     public Guid Id { get; set; }
     public Guid AssignmentId { get; set; }
     public Guid SubjectId { get; set; }
+    /// <summary>When true, students must enroll in exactly one subject from the same ElectiveGroup.</summary>
+    public bool IsElective { get; set; }
+    /// <summary>Group key for mutually exclusive options (e.g. "4th" for Higher Math / Agriculture / Biology).</summary>
+    public string? ElectiveGroup { get; set; }
 
     public ClassSubjectAssignment Assignment { get; set; } = null!;
     public Subject Subject { get; set; } = null!;

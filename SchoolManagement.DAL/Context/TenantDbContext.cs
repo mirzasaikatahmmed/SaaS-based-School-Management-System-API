@@ -65,6 +65,7 @@ public class TenantDbContext : DbContext
     public DbSet<Subject> Subjects => Set<Subject>();
     public DbSet<ClassSubjectAssignment> ClassSubjectAssignments => Set<ClassSubjectAssignment>();
     public DbSet<ClassSubjectAssignmentItem> ClassSubjectAssignmentItems => Set<ClassSubjectAssignmentItem>();
+    public DbSet<StudentSubjectEnrollment> StudentSubjectEnrollments => Set<StudentSubjectEnrollment>();
     public DbSet<ClassSchedule> ClassSchedules => Set<ClassSchedule>();
     public DbSet<ClassSchedulePeriod> ClassSchedulePeriods => Set<ClassSchedulePeriod>();
     public DbSet<StudentPromotion> StudentPromotions => Set<StudentPromotion>();
@@ -79,6 +80,7 @@ public class TenantDbContext : DbContext
     public DbSet<GradeRange> GradeRanges => Set<GradeRange>();
     public DbSet<ExamPosition> ExamPositions => Set<ExamPosition>();
     public DbSet<StudentAttendance> StudentAttendances => Set<StudentAttendance>();
+    public DbSet<StudentSubjectAttendance> StudentSubjectAttendances => Set<StudentSubjectAttendance>();
     public DbSet<EmployeeAttendance> EmployeeAttendances => Set<EmployeeAttendance>();
     public DbSet<ExamAttendance> ExamAttendances => Set<ExamAttendance>();
     public DbSet<BookCategory> BookCategories => Set<BookCategory>();
@@ -127,6 +129,7 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255).IsRequired();
             entity.Property(e => e.Username).HasColumnName("username").HasMaxLength(100).IsRequired();
             entity.Property(e => e.Password).HasColumnName("password").HasMaxLength(250).IsRequired();
+            entity.Property(e => e.PasswordRevealEncrypted).HasColumnName("password_reveal_encrypted");
             entity.Property(e => e.FirstName).HasColumnName("first_name").HasMaxLength(255).IsRequired();
             entity.Property(e => e.LastName).HasColumnName("last_name").HasMaxLength(255).IsRequired();
             entity.Property(e => e.Mobileno).HasColumnName("mobileno").HasMaxLength(100);
@@ -915,6 +918,8 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Code).HasColumnName("code").HasMaxLength(50).IsRequired();
             entity.Property(e => e.Author).HasColumnName("author").HasMaxLength(200);
             entity.Property(e => e.SubjectType).HasColumnName("subject_type").HasMaxLength(50).IsRequired().HasDefaultValue(SubjectTypes.Theory);
+            entity.Property(e => e.CanBeAdditional).HasColumnName("can_be_additional").HasDefaultValue(false);
+            entity.Property(e => e.IsContinuousAssessment).HasColumnName("is_continuous_assessment").HasDefaultValue(false);
             entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
@@ -942,9 +947,35 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
             entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.IsElective).HasColumnName("is_elective").HasDefaultValue(false);
+            entity.Property(e => e.ElectiveGroup).HasColumnName("elective_group").HasMaxLength(50);
             entity.HasIndex(e => new { e.AssignmentId, e.SubjectId }).IsUnique();
             entity.HasOne(e => e.Assignment).WithMany(a => a.Items).HasForeignKey(e => e.AssignmentId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.Subject).WithMany(s => s.AssignmentItems).HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StudentSubjectEnrollment>(entity =>
+        {
+            entity.ToTable("student_subject_enrollments", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.AcademicYear).HasColumnName("academic_year");
+            entity.Property(e => e.ElectiveGroup).HasColumnName("elective_group").HasMaxLength(50).IsRequired().HasDefaultValue("4th");
+            entity.Property(e => e.AdditionalSubjectId).HasColumnName("additional_subject_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.StudentId, e.ElectiveGroup, e.AcademicYear }).IsUnique();
+            entity.HasIndex(e => new { e.StudentId, e.SubjectId, e.AcademicYear }).IsUnique();
+            entity.HasIndex(e => new { e.ClassId, e.SectionId, e.AcademicYear, e.ElectiveGroup });
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.AdditionalSubject).WithMany().HasForeignKey(e => e.AdditionalSubjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ClassSchedule>(entity =>
@@ -1203,6 +1234,30 @@ public class TenantDbContext : DbContext
             entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<StudentSubjectAttendance>(entity =>
+        {
+            entity.ToTable("student_subject_attendance", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.AttendanceDate).HasColumnName("attendance_date").HasColumnType("date");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Present");
+            entity.Property(e => e.Remarks).HasColumnName("remarks");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.StudentId, e.SubjectId, e.AttendanceDate }).IsUnique();
+            entity.HasIndex(e => e.AttendanceDate).HasDatabaseName("idx_student_subject_att_date");
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -1633,6 +1688,7 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.PaymentGateways).HasColumnName("payment_gateways").HasColumnType("jsonb").HasDefaultValue("{}");
             entity.Property(e => e.ActiveGateways).HasColumnName("active_gateways").HasColumnType("jsonb").HasDefaultValue("[]");
             entity.Property(e => e.AttendanceType).HasColumnName("attendance_type").HasMaxLength(20).HasDefaultValue("DayWise");
+            entity.Property(e => e.WeekendDays).HasColumnName("weekend_days").HasMaxLength(20).HasDefaultValue("5,6");
             entity.Property(e => e.DefaultDepositAccountId).HasColumnName("default_deposit_account_id");
             entity.Property(e => e.DefaultExpenseAccountId).HasColumnName("default_expense_account_id");
             entity.Property(e => e.AccountingLinksEnabled).HasColumnName("accounting_links_enabled").HasDefaultValue(false);

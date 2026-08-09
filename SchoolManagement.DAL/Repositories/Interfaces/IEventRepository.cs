@@ -18,6 +18,7 @@ public interface IEventRepository
     Task<(IReadOnlyList<SchoolEvent> Items, int TotalCount)> SearchAsync(EventSearchFilter filter, CancellationToken cancellationToken = default);
     Task<SchoolEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SchoolEvent>> GetPublicAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DateTime>> GetHolidayDatesAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
     Task<SchoolEvent> AddAsync(SchoolEvent entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(SchoolEvent entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(SchoolEvent entity, CancellationToken cancellationToken = default);

@@ -13,6 +13,12 @@ public class User
     /// <summary>Mapped to column "password" — stores bcrypt hash ($2y$ / $2a$).</summary>
     public string Password { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Reversible (Data Protection) copy of the last set password so Login Credential
+    /// reports can display student/parent passwords. Never used for authentication.
+    /// </summary>
+    public string? PasswordRevealEncrypted { get; set; }
+
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 

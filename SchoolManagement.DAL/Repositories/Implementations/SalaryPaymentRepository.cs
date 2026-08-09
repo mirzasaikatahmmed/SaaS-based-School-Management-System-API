@@ -27,6 +27,18 @@ public class SalaryPaymentRepository(TenantDbContext context) : ISalaryPaymentRe
             .OrderByDescending(p => p.PaymentMonth)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<SalaryPayment>> GetByMonthAsync(
+        string paymentMonth, string? role = null, CancellationToken cancellationToken = default)
+    {
+        var q = context.SalaryPayments
+            .Include(p => p.Employee).ThenInclude(e => e.Designation)
+            .Include(p => p.Template)
+            .Where(p => p.PaymentMonth == paymentMonth);
+        if (!string.IsNullOrWhiteSpace(role))
+            q = q.Where(p => p.Employee.Role.ToLower() == role.Trim().ToLower());
+        return await q.OrderBy(p => p.Employee.Name).ToListAsync(cancellationToken);
+    }
+
     public async Task<SalaryPayment> AddAsync(SalaryPayment entity, CancellationToken cancellationToken = default)
     {
         await context.SalaryPayments.AddAsync(entity, cancellationToken);

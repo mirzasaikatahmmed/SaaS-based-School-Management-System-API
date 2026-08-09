@@ -7,6 +7,10 @@ public class Subject
     public string Code { get; set; } = string.Empty;
     public string? Author { get; set; }
     public string SubjectType { get; set; } = SubjectTypes.Theory;
+    /// <summary>May be declared as SSC Additional Subject for GP-above-2 bonus (e.g. Biology).</summary>
+    public bool CanBeAdditional { get; set; }
+    /// <summary>Continuous assessment (PE, Career Education) — graded but excluded from GPA.</summary>
+    public bool IsContinuousAssessment { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -38,6 +38,11 @@ public class MarkEntryService(
             students = students.Where(s => s.Id == current.Id).ToList();
         }
 
+        var academicYear = students.FirstOrDefault()?.AcademicYear
+                           ?? DateTime.UtcNow.Year;
+        students = (await Helpers.ElectiveSubjectHelper.FilterStudentsForSubjectAsync(
+            uow, filter.ClassId, filter.SectionId, filter.SubjectId, academicYear, students, ct)).ToList();
+
         var existing = await uow.MarkEntries.GetForFilterAsync(
             filter.ExamId, filter.ClassId, filter.SectionId, filter.SubjectId, ct);
         var byStudent = existing.ToDictionary(m => m.StudentId);

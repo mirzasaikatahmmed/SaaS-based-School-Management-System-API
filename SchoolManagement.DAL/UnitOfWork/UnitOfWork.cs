@@ -37,6 +37,7 @@ public class UnitOfWork : IUnitOfWork
     private IClassTeacherRepository? _classTeacherRepository;
     private ISubjectRepository? _subjectRepository;
     private IClassSubjectAssignmentRepository? _classSubjectAssignmentRepository;
+    private IStudentSubjectEnrollmentRepository? _studentSubjectEnrollmentRepository;
     private IClassScheduleRepository? _classScheduleRepository;
     private IStudentPromotionRepository? _studentPromotionRepository;
     private IExamTermRepository? _examTermRepository;
@@ -48,6 +49,7 @@ public class UnitOfWork : IUnitOfWork
     private IGradeRangeRepository? _gradeRangeRepository;
     private IExamPositionRepository? _examPositionRepository;
     private IStudentAttendanceRepository? _studentAttendanceRepository;
+    private IStudentSubjectAttendanceRepository? _studentSubjectAttendanceRepository;
     private IEmployeeAttendanceRepository? _employeeAttendanceRepository;
     private IExamAttendanceRepository? _examAttendanceRepository;
     private IBookCategoryRepository? _bookCategoryRepository;
@@ -308,6 +310,15 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IStudentSubjectEnrollmentRepository StudentSubjectEnrollments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentSubjectEnrollmentRepository ??= new StudentSubjectEnrollmentRepository(_tenantContextDb!);
+        }
+    }
+
     public IClassScheduleRepository ClassSchedules
     {
         get
@@ -404,6 +415,15 @@ public class UnitOfWork : IUnitOfWork
         {
             EnsureTenantDb();
             return _studentAttendanceRepository ??= new StudentAttendanceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IStudentSubjectAttendanceRepository StudentSubjectAttendances
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentSubjectAttendanceRepository ??= new StudentSubjectAttendanceRepository(_tenantContextDb!);
         }
     }
 

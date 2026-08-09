@@ -30,6 +30,7 @@ public class StudentService : IStudentService
     private readonly ITenantSchemaProvisioner _schemaProvisioner;
     private readonly IStorageService _storageService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPasswordRevealService _passwordReveal;
     private readonly ILogger<StudentService> _logger;
 
     public StudentService(
@@ -38,6 +39,7 @@ public class StudentService : IStudentService
         ITenantSchemaProvisioner schemaProvisioner,
         IStorageService storageService,
         IHttpContextAccessor httpContextAccessor,
+        IPasswordRevealService passwordReveal,
         ILogger<StudentService> logger)
     {
         _unitOfWork = unitOfWork;
@@ -45,6 +47,7 @@ public class StudentService : IStudentService
         _schemaProvisioner = schemaProvisioner;
         _storageService = storageService;
         _httpContextAccessor = httpContextAccessor;
+        _passwordReveal = passwordReveal;
         _logger = logger;
     }
 
@@ -158,7 +161,6 @@ public class StudentService : IStudentService
                 Id = Guid.NewGuid(),
                 Email = email,
                 Username = dto.Username.Trim().ToLowerInvariant(),
-                Password = PasswordHelper.HashPassword(dto.Password),
                 FirstName = dto.FirstName.Trim(),
                 LastName = dto.LastName?.Trim() ?? string.Empty,
                 Mobileno = dto.MobileNo,
@@ -167,6 +169,7 @@ public class StudentService : IStudentService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+            _passwordReveal.Apply(studentUser, dto.Password);
             await _unitOfWork.Users.AddAsync(studentUser, cancellationToken);
             await _unitOfWork.Users.AddUserRoleAsync(new UserRole
             {
@@ -266,7 +269,6 @@ public class StudentService : IStudentService
                         Id = Guid.NewGuid(),
                         Email = gEmail,
                         Username = gUsername,
-                        Password = PasswordHelper.HashPassword(g.Password),
                         FirstName = nameParts[0],
                         LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty,
                         Mobileno = g.MobileNo,
@@ -275,6 +277,7 @@ public class StudentService : IStudentService
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
+                    _passwordReveal.Apply(guardianUser, g.Password);
                     await _unitOfWork.Users.AddAsync(guardianUser, cancellationToken);
                     await _unitOfWork.Users.AddUserRoleAsync(new UserRole
                     {
@@ -379,7 +382,6 @@ public class StudentService : IStudentService
             Id = Guid.NewGuid(),
             Email = email,
             Username = username,
-            Password = PasswordHelper.HashPassword(dto.AdminPassword),
             FirstName = application.FirstName.Trim(),
             LastName = application.LastName?.Trim() ?? string.Empty,
             Mobileno = application.MobileNo,
@@ -389,6 +391,7 @@ public class StudentService : IStudentService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+        _passwordReveal.Apply(studentUser, dto.AdminPassword);
         await _unitOfWork.Users.AddAsync(studentUser, cancellationToken);
         await _unitOfWork.Users.AddUserRoleAsync(new UserRole
         {
@@ -555,7 +558,6 @@ public class StudentService : IStudentService
             Id = Guid.NewGuid(),
             Email = email,
             Username = username,
-            Password = PasswordHelper.HashPassword(password),
             FirstName = row.FirstName!.Trim(),
             LastName = row.LastName?.Trim() ?? string.Empty,
             Mobileno = row.MobileNo,
@@ -564,6 +566,7 @@ public class StudentService : IStudentService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+        _passwordReveal.Apply(studentUser, password);
         await _unitOfWork.Users.AddAsync(studentUser, cancellationToken);
         await _unitOfWork.Users.AddUserRoleAsync(new UserRole
         {
@@ -663,7 +666,6 @@ public class StudentService : IStudentService
                     Id = Guid.NewGuid(),
                     Email = gEmail,
                     Username = gUsername,
-                    Password = PasswordHelper.HashPassword(row.GuardianPassword),
                     FirstName = nameParts[0],
                     LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty,
                     Mobileno = row.GuardianMobile,
@@ -671,6 +673,7 @@ public class StudentService : IStudentService
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+                _passwordReveal.Apply(guardianUser, row.GuardianPassword);
                 await _unitOfWork.Users.AddAsync(guardianUser, cancellationToken);
                 await _unitOfWork.Users.AddUserRoleAsync(new UserRole
                 {

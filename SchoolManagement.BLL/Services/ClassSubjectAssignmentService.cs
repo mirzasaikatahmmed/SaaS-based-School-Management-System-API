@@ -38,16 +38,19 @@ public class ClassSubjectAssignmentService(
         await Ready(ct);
         Manage();
 
-        var subjectIds = dto.SubjectIds.Distinct().ToList();
-        if (subjectIds.Count == 0)
+        var inputs = NormalizeItems(dto);
+        if (inputs.Count == 0)
             throw new AppException("At least one subject must be provided.", 400);
 
-        foreach (var subjectId in subjectIds)
+        foreach (var item in inputs)
         {
-            if (await uow.Subjects.GetByIdAsync(subjectId, ct) is null)
-                throw new NotFoundException($"Subject '{subjectId}' not found.");
+            if (await uow.Subjects.GetByIdAsync(item.SubjectId, ct) is null)
+                throw new NotFoundException($"Subject '{item.SubjectId}' not found.");
+            if (item.IsElective && string.IsNullOrWhiteSpace(item.ElectiveGroup))
+                throw new AppException("Elective subjects require electiveGroup (e.g. \"4th\").", 400);
         }
 
+        // Within each elective group there must be at least 2 options to be useful — warn soft via allow 1+
         var existing = await uow.ClassSubjectAssignments.GetByClassSectionAsync(dto.ClassId, dto.SectionId, ct);
         Guid assignmentId;
         if (existing is not null)
@@ -70,11 +73,13 @@ public class ClassSubjectAssignmentService(
             assignmentId = entity.Id;
         }
 
-        var items = subjectIds.Select(subjectId => new ClassSubjectAssignmentItem
+        var items = inputs.Select(i => new ClassSubjectAssignmentItem
         {
             Id = Guid.NewGuid(),
             AssignmentId = assignmentId,
-            SubjectId = subjectId
+            SubjectId = i.SubjectId,
+            IsElective = i.IsElective,
+            ElectiveGroup = i.IsElective ? i.ElectiveGroup!.Trim() : null
         }).ToList();
 
         await uow.ClassSubjectAssignments.ReplaceItemsAsync(assignmentId, items, ct);
@@ -95,6 +100,21 @@ public class ClassSubjectAssignmentService(
         await uow.SaveTenantChangesAsync(ct);
     }
 
+    private static List<ClassSubjectItemInputDto> NormalizeItems(UpsertClassSubjectAssignmentDto dto)
+    {
+        if (dto.Items.Count > 0)
+            return dto.Items
+                .GroupBy(i => i.SubjectId)
+                .Select(g => g.Last())
+                .ToList();
+
+        return dto.SubjectIds.Distinct().Select(id => new ClassSubjectItemInputDto
+        {
+            SubjectId = id,
+            IsElective = false
+        }).ToList();
+    }
+
     private static ClassSubjectAssignmentResponseDto Map(ClassSubjectAssignment x) => new()
     {
         Id = x.Id,
@@ -102,11 +122,13 @@ public class ClassSubjectAssignmentService(
         ClassName = x.Class?.Name ?? string.Empty,
         SectionId = x.SectionId,
         SectionName = x.Section?.Name ?? string.Empty,
-        Subjects = x.Items.Select(i => new SubjectLookupDto
+        Subjects = x.Items.Select(i => new AssignedSubjectDto
         {
             Id = i.Subject.Id,
             Name = i.Subject.Name,
-            Code = i.Subject.Code
+            Code = i.Subject.Code,
+            IsElective = i.IsElective,
+            ElectiveGroup = i.ElectiveGroup
         }).ToList(),
         CreatedAt = x.CreatedAt,
         UpdatedAt = x.UpdatedAt
@@ -116,7 +138,7 @@ public class ClassSubjectAssignmentService(
     {
         if (string.IsNullOrEmpty(tenant.SchemaName))
             throw new AppException("X-Tenant-ID header is required.", 400);
-        await provisioner.EnsureEmployeeModuleAsync(tenant.SchemaName!, ct);
+        await provisioner.EnsureSettingsModuleAsync(tenant.SchemaName!, ct);
     }
 
     private HashSet<string> Roles()

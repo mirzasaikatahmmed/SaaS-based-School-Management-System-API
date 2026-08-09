@@ -51,13 +51,51 @@ public class ExamPositionService(
         var grades = (await uow.GradeRanges.GetAllAsync(ct)).Where(g => g.IsActive).OrderBy(g => g.SortOrder).ToList();
         var passThreshold = grades.Where(g => g.GradePoint > 0).Select(g => (decimal?)g.MinPercentage).Min() ?? DefaultPassPercentage;
 
+        var scheduleSubjectsAll = await uow.MarkEntries.GetScheduleSubjectsAsync(filter.ExamId, filter.ClassId, filter.SectionId, ct);
+        var marks = await uow.MarkEntries.GetForExamClassSectionAsync(filter.ExamId, filter.ClassId, filter.SectionId, ct);
+        var markLookup = marks.ToDictionary(m => (m.StudentId, m.SubjectId));
+        var subjectMeta = (await uow.Subjects.GetAllAsync(ct)).ToDictionary(s => s.Id);
+        var enrollmentsByStudent = (await uow.StudentSubjectEnrollments.GetForClassAsync(
+                filter.ClassId, filter.SectionId, filter.AcademicYear, null, ct))
+            .GroupBy(e => e.StudentId)
+            .ToDictionary(g => g.Key, g => g.First());
+
         var computed = new List<(Student Student, decimal Total, decimal Percentage, decimal Gpa, string Result)>();
         foreach (var student in students)
         {
             totals.TryGetValue(student.Id, out var total);
             var percentage = fullMarks > 0 ? Math.Round(total / fullMarks * 100, 2) : 0;
-            var grade = grades.FirstOrDefault(g => percentage >= g.MinPercentage && percentage <= g.MaxPercentage);
-            var gpa = grade?.GradePoint ?? 0;
+
+            var scheduleSubjects = await Helpers.ElectiveSubjectHelper.FilterScheduleSubjectsForStudentAsync(
+                uow, filter.ClassId, filter.SectionId, student.Id, filter.AcademicYear, scheduleSubjectsAll, ct);
+            enrollmentsByStudent.TryGetValue(student.Id, out var enrollment);
+
+            var gpInputs = new List<Helpers.BdGpaCalculator.SubjectGp>();
+            foreach (var ss in scheduleSubjects)
+            {
+                markLookup.TryGetValue((student.Id, ss.SubjectId), out var m);
+                var obt = m is null || m.IsAbsent ? (decimal?)null : m.TotalMark;
+                var full = ss.WrittenFullMark ?? 0;
+                if (!obt.HasValue || full <= 0) continue;
+
+                subjectMeta.TryGetValue(ss.SubjectId, out var meta);
+                var pct = Math.Round(obt.Value / full * 100, 2);
+                var g = grades.FirstOrDefault(x => pct >= x.MinPercentage && pct <= x.MaxPercentage);
+                if (g is null) continue;
+
+                gpInputs.Add(new Helpers.BdGpaCalculator.SubjectGp
+                {
+                    SubjectId = ss.SubjectId,
+                    Name = ss.Subject?.Name ?? ss.SubjectId.ToString(),
+                    GradePoint = g.GradePoint,
+                    IsContinuousAssessment = meta?.IsContinuousAssessment ?? false
+                });
+            }
+
+            var bd = Helpers.BdGpaCalculator.Calculate(gpInputs, enrollment?.AdditionalSubjectId);
+            var gpa = bd.MainSubjectCount > 0
+                ? bd.Gpa
+                : grades.FirstOrDefault(x => percentage >= x.MinPercentage && percentage <= x.MaxPercentage)?.GradePoint ?? 0;
             var result = percentage >= passThreshold ? PassResult : FailResult;
             computed.Add((student, total, percentage, gpa, result));
         }

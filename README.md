@@ -39,6 +39,7 @@ Multi-tenant school management API built with **.NET 10**. Each school gets an i
 | **Settings module** | Roles/permissions matrix, sessions, cron jobs, DB backup, login log, attendance type, accounting links |
 | **Email gateway** | Per-school SMTP (TLS/SSL), encrypted password, event templates + test send |
 | **SMS gateway** | BulkSMSBD.net (default): send / send-many / balance, event templates + test SMS |
+| **Student reports** | Login credentials (student + parent passwords), admission, class/section, siblings |
 
 ---
 
@@ -161,15 +162,26 @@ make push TAG=v1.0
 | `/api/settings/cron`, `/cron_api` | Cron secret + scheduled SMS/email/fees/homework jobs |
 | `/api/settings/backup` | Tenant schema backup / restore (MinIO) |
 | `/api/settings/login-log` | Staff / student / parent login audit |
+| `/api/reports/students` | Login credentials (+ passwords), admission, class/section, sibling reports |
+| `/api/reports/attendance` | Student / subject / employee / exam / fingerprint attendance reports |
+| `/api/reports/hr` | Leave reports + payroll summary |
+| `/api/academic/student-electives` | Per-student 4th / optional subject (Higher Math vs Agriculture, etc.) |
+| `/api/reports/examination` | Report card, tabulation sheet, progress reports |
+| `/api/attendance/subject` | Subject-wise attendance capture (for subject reports) |
 | `/api/biometric` | Devices, PIN↔person maps, punch logs (Admin) |
 | `/iclock` | ZKTeco ADMS device push endpoint (anonymous, plain text) |
 
 Interactive docs: **Swagger** at http://localhost:5000/swagger (Development).  
 Swagger title/banner shows a live **endpoint counter** (GET / POST / PATCH / DELETE breakdown).
 
-Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–30**)  
+Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–35**)  
 - Email gateway: [`docs/modules/29-email-gateway.md`](docs/modules/29-email-gateway.md)  
 - SMS gateway (BulkSMSBD): [`docs/modules/30-sms-gateway.md`](docs/modules/30-sms-gateway.md)  
+- Student reports: [`docs/modules/31-student-reports.md`](docs/modules/31-student-reports.md)  
+- Attendance reports: [`docs/modules/32-attendance-reports.md`](docs/modules/32-attendance-reports.md)  
+- HR reports: [`docs/modules/33-hr-reports.md`](docs/modules/33-hr-reports.md)  
+- Examination reports: [`docs/modules/34-examination-reports.md`](docs/modules/34-examination-reports.md)  
+- Student electives: [`docs/modules/35-student-electives.md`](docs/modules/35-student-electives.md)  
 System workflow: [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
 
 ---

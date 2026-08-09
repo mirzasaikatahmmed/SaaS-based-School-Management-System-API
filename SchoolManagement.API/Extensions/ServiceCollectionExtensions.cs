@@ -75,6 +75,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IClassTeacherService, ClassTeacherService>();
         services.AddScoped<ISubjectService, SubjectService>();
         services.AddScoped<IClassSubjectAssignmentService, ClassSubjectAssignmentService>();
+        services.AddScoped<IStudentElectiveService, StudentElectiveService>();
         services.AddScoped<IClassScheduleService, ClassScheduleService>();
         services.AddScoped<IStudentPromotionService, StudentPromotionService>();
         services.AddScoped<IExamTermService, ExamTermService>();
@@ -86,8 +87,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGradeRangeService, GradeRangeService>();
         services.AddScoped<IExamPositionService, ExamPositionService>();
         services.AddScoped<IStudentAttendanceService, StudentAttendanceService>();
+        services.AddScoped<ISubjectAttendanceService, SubjectAttendanceService>();
         services.AddScoped<IEmployeeAttendanceService, EmployeeAttendanceService>();
         services.AddScoped<IExamAttendanceService, ExamAttendanceService>();
+        services.AddScoped<IAttendanceReportService, AttendanceReportService>();
+        services.AddScoped<IHrReportService, HrReportService>();
+        services.AddScoped<IExaminationReportService, ExaminationReportService>();
         services.AddScoped<IBookCategoryService, BookCategoryService>();
         services.AddScoped<IBookService, BookService>();
         services.AddScoped<IBookIssueService, BookIssueService>();
@@ -129,6 +134,8 @@ public static class ServiceCollectionExtensions
             client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, text/plain, */*");
         });
         services.AddScoped<ISchoolSettingsExtrasService, SchoolSettingsExtrasService>();
+        services.AddScoped<IStudentReportService, StudentReportService>();
+        services.AddScoped<IPasswordRevealService, PasswordRevealService>();
         services.AddSingleton<IStorageService, StorageService>();
         services.AddDataProtection();
 

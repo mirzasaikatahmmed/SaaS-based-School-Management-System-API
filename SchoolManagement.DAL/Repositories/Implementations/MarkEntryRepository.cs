@@ -14,6 +14,14 @@ public class MarkEntryRepository(TenantDbContext context) : IMarkEntryRepository
             .Where(m => m.ExamId == examId && m.ClassId == classId && m.SectionId == sectionId && m.SubjectId == subjectId)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<MarkEntry>> GetForExamClassSectionAsync(
+        Guid examId, Guid classId, Guid sectionId, CancellationToken cancellationToken = default)
+        => await context.MarkEntries
+            .Include(m => m.Student).ThenInclude(s => s.Category)
+            .Include(m => m.Subject)
+            .Where(m => m.ExamId == examId && m.ClassId == classId && m.SectionId == sectionId)
+            .ToListAsync(cancellationToken);
+
     public async Task UpsertBatchAsync(IEnumerable<MarkEntry> entries, CancellationToken cancellationToken = default)
     {
         foreach (var entry in entries)
@@ -50,10 +58,24 @@ public class MarkEntryRepository(TenantDbContext context) : IMarkEntryRepository
                         s.SubjectId == subjectId)
             .FirstOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<ExamScheduleSubject>> GetScheduleSubjectsAsync(
+        Guid examId, Guid classId, Guid sectionId, CancellationToken cancellationToken = default)
+        => await context.ExamScheduleSubjects
+            .Include(s => s.Subject)
+            .Include(s => s.Schedule)
+            .Where(s => s.Schedule.ExamId == examId &&
+                        s.Schedule.ClassId == classId &&
+                        s.Schedule.SectionId == sectionId)
+            .OrderBy(s => s.SortOrder).ThenBy(s => s.Subject.Name)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Student>> GetActiveStudentsByClassSectionAsync(
         Guid classId, Guid sectionId, CancellationToken cancellationToken = default)
         => await context.Students
             .Include(s => s.Category)
+            .Include(s => s.Class)
+            .Include(s => s.Section)
+            .Include(s => s.Guardians)
             .Where(s => s.IsActive && s.ClassId == classId && s.SectionId == sectionId)
             .OrderBy(s => s.Roll).ThenBy(s => s.RegisterNo)
             .ToListAsync(cancellationToken);

@@ -1063,6 +1063,17 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("uuid")
                         .HasColumnName("assignment_id");
 
+                    b.Property<string>("ElectiveGroup")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("elective_group");
+
+                    b.Property<bool>("IsElective")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_elective");
+
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid")
                         .HasColumnName("subject_id");
@@ -4597,6 +4608,14 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("character varying(255)")
                         .HasColumnName("website");
 
+                    b.Property<string>("WeekendDays")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("5,6")
+                        .HasColumnName("weekend_days");
+
                     b.HasKey("Id");
 
                     b.ToTable("school_settings", "tenant_template");
@@ -4656,7 +4675,7 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
-                        .HasDefaultValue("textlocal")
+                        .HasDefaultValue("bulksmsbd")
                         .HasColumnName("activated_gateway");
 
                     b.Property<DateTime>("CreatedAt")
@@ -5266,6 +5285,152 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.ToTable("student_promotions", "tenant_template");
                 });
 
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentSubjectAttendance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("AttendanceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("attendance_date");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("text")
+                        .HasColumnName("remarks");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Present")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendanceDate")
+                        .HasDatabaseName("idx_student_subject_att_date");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("StudentId", "SubjectId", "AttendanceDate")
+                        .IsUnique();
+
+                    b.ToTable("student_subject_attendance", "tenant_template");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentSubjectEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("academic_year");
+
+                    b.Property<Guid?>("AdditionalSubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("additional_subject_id");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("ElectiveGroup")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("4th")
+                        .HasColumnName("elective_group");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdditionalSubjectId");
+
+                    b.HasIndex("SectionId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("StudentId", "ElectiveGroup", "AcademicYear")
+                        .IsUnique();
+
+                    b.HasIndex("StudentId", "SubjectId", "AcademicYear")
+                        .IsUnique();
+
+                    b.HasIndex("ClassId", "SectionId", "AcademicYear", "ElectiveGroup");
+
+                    b.ToTable("student_subject_enrollments", "tenant_template");
+                });
+
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.Subject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5278,6 +5443,12 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("author");
+
+                    b.Property<bool>("CanBeAdditional")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("can_be_additional");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -5296,6 +5467,12 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
+
+                    b.Property<bool>("IsContinuousAssessment")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_continuous_assessment");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -5424,6 +5601,10 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)")
                         .HasColumnName("password");
+
+                    b.Property<string>("PasswordRevealEncrypted")
+                        .HasColumnType("text")
+                        .HasColumnName("password_reveal_encrypted");
 
                     b.Property<string>("Photo")
                         .HasMaxLength(255)
@@ -6617,6 +6798,90 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                     b.Navigation("ToClass");
 
                     b.Navigation("ToSection");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentSubjectAttendance", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Section");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.StudentSubjectEnrollment", b =>
+                {
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "AdditionalSubject")
+                        .WithMany()
+                        .HasForeignKey("AdditionalSubjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.ClassEntity", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManagement.DAL.Entities.Tenant.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AdditionalSubject");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Section");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SchoolManagement.DAL.Entities.Tenant.UserRole", b =>

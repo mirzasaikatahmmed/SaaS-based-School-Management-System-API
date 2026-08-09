@@ -49,6 +49,8 @@ public class SubjectService(
             Code = code,
             Author = string.IsNullOrWhiteSpace(dto.Author) ? null : dto.Author.Trim(),
             SubjectType = subjectType,
+            CanBeAdditional = dto.CanBeAdditional,
+            IsContinuousAssessment = dto.IsContinuousAssessment,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -75,6 +77,8 @@ public class SubjectService(
         entity.Author = string.IsNullOrWhiteSpace(dto.Author) ? null : dto.Author.Trim();
         entity.SubjectType = ValidateSubjectType(dto.SubjectType);
         if (dto.IsActive.HasValue) entity.IsActive = dto.IsActive.Value;
+        if (dto.CanBeAdditional.HasValue) entity.CanBeAdditional = dto.CanBeAdditional.Value;
+        if (dto.IsContinuousAssessment.HasValue) entity.IsContinuousAssessment = dto.IsContinuousAssessment.Value;
         entity.UpdatedAt = DateTime.UtcNow;
 
         await uow.Subjects.UpdateAsync(entity, ct);
@@ -108,6 +112,8 @@ public class SubjectService(
         Code = x.Code,
         Author = x.Author,
         SubjectType = x.SubjectType,
+        CanBeAdditional = x.CanBeAdditional,
+        IsContinuousAssessment = x.IsContinuousAssessment,
         IsActive = x.IsActive,
         CreatedAt = x.CreatedAt
     };

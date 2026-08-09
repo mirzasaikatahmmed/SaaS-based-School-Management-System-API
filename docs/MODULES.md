@@ -45,6 +45,11 @@ Super Admin school/tenant APIs typically omit `X-Tenant-ID` unless acting inside
 | 28 | Settings (Roles, Sessions, Cron, Backup, Login Log, Email/SMS) | [28-settings.md](./modules/28-settings.md) |
 | 29 | Email Gateway (SMTP) | [29-email-gateway.md](./modules/29-email-gateway.md) |
 | 30 | SMS Gateway (BulkSMSBD.net) | [30-sms-gateway.md](./modules/30-sms-gateway.md) |
+| 31 | Student Reports (Login Credential + passwords, Admission, Class/Section, Sibling) | [31-student-reports.md](./modules/31-student-reports.md) |
+| 32 | Attendance Reports (Student / Subject / Employee / Exam / Fingerprint logs) | [32-attendance-reports.md](./modules/32-attendance-reports.md) |
+| 33 | HR Reports (Leave Reports, Payroll Summary) | [33-hr-reports.md](./modules/33-hr-reports.md) |
+| 34 | Examination Reports (Report Card, Tabulation, Progress) | [34-examination-reports.md](./modules/34-examination-reports.md) |
+| 35 | Student Electives + Additional Subject (SSC GPA) | [35-student-electives.md](./modules/35-student-electives.md) |
 
 ## Typical end-to-end workflow
 
