@@ -23,6 +23,7 @@ public static class StartupExtensions
         await masterDb.Database.MigrateAsync();
 
         await SeedSuperAdminAsync(scope.ServiceProvider, logger);
+        await SeedGlobalSettingsAsync(scope.ServiceProvider, logger);
 
         var storage = scope.ServiceProvider.GetRequiredService<IStorageService>();
         await storage.VerifyConnectionAsync();
@@ -60,5 +61,25 @@ public static class StartupExtensions
 
         logger.LogInformation("Seeded super admin {Email} with role {Role}",
             admin.Email, AppConstants.Roles.SuperAdmin);
+    }
+
+    private static async Task SeedGlobalSettingsAsync(IServiceProvider services, ILogger logger)
+    {
+        var masterDb = services.GetRequiredService<MasterDbContext>();
+        if (await masterDb.GlobalSettings.AnyAsync())
+        {
+            logger.LogInformation("Global settings already exist — skipping seed.");
+            return;
+        }
+
+        masterDb.GlobalSettings.Add(new GlobalSettings
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await masterDb.SaveChangesAsync();
+
+        logger.LogInformation("Seeded default global settings.");
     }
 }

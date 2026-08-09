@@ -19,6 +19,10 @@ public interface ITenantSchemaProvisioner
     Task EnsureAwardModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureAcademicModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureExamMasterModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureGradesAttendanceLibraryEventsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureStudentAndOfficeAccountingModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureMessageAndSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureBiometricModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -1064,6 +1068,10 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
         }
 
+        // EnsureAcademicModuleAsync references employees(id) (class_teacher_allocations, class_schedule_periods),
+        // so the employee module must be provisioned first when reached via this chain
+        // (Student/OfficeAccounting -> GradesAttendanceLibraryEvents -> ExamMaster -> Academic).
+        await EnsureEmployeeModuleAsync(schemaName, cancellationToken);
         await EnsureAcademicModuleAsync(schemaName, cancellationToken);
 
         var sql = $"""
@@ -1174,6 +1182,547 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
             INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
             VALUES ('20260809080441_AddExamMasterModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    public async Task EnsureGradesAttendanceLibraryEventsModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureExamMasterModuleAsync(schemaName, cancellationToken);
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".grade_ranges (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                grade_name VARCHAR(10) NOT NULL,
+                grade_point NUMERIC(4,2) NOT NULL,
+                min_percentage NUMERIC(5,2) NOT NULL,
+                max_percentage NUMERIC(5,2) NOT NULL,
+                remarks VARCHAR(200),
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                sort_order INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_{schemaName}_grade_ranges_name"
+                ON "{schemaName}".grade_ranges (grade_name);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".exam_positions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                exam_id UUID NOT NULL REFERENCES "{schemaName}".exams(id),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id),
+                academic_year INT NOT NULL,
+                total_marks NUMERIC(8,2) NOT NULL DEFAULT 0,
+                full_marks NUMERIC(8,2) NOT NULL DEFAULT 0,
+                percentage NUMERIC(5,2) NOT NULL DEFAULT 0,
+                gpa NUMERIC(4,2) NOT NULL DEFAULT 0,
+                result VARCHAR(10) NOT NULL DEFAULT 'FAIL',
+                position INT,
+                principal_comments TEXT,
+                teacher_comments TEXT,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(exam_id, class_id, section_id, student_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".student_attendance (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                attendance_date DATE NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'Present',
+                remarks TEXT,
+                created_by UUID REFERENCES "{schemaName}".users(id) ON DELETE SET NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(student_id, attendance_date)
+            );
+            CREATE INDEX IF NOT EXISTS idx_student_att_date ON "{schemaName}".student_attendance(attendance_date);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".employee_attendance (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                employee_id UUID NOT NULL REFERENCES "{schemaName}".employees(id),
+                attendance_date DATE NOT NULL,
+                status VARCHAR(20),
+                remarks TEXT,
+                created_by UUID REFERENCES "{schemaName}".users(id) ON DELETE SET NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(employee_id, attendance_date)
+            );
+            CREATE INDEX IF NOT EXISTS idx_employee_att_date ON "{schemaName}".employee_attendance(attendance_date);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".exam_attendance (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                exam_id UUID NOT NULL REFERENCES "{schemaName}".exams(id),
+                subject_id UUID NOT NULL REFERENCES "{schemaName}".subjects(id),
+                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                status VARCHAR(20) NOT NULL DEFAULT 'Present',
+                remarks TEXT,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(exam_id, subject_id, student_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".book_categories (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_{schemaName}_book_categories_name"
+                ON "{schemaName}".book_categories (name);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".books (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(500) NOT NULL,
+                isbn_no VARCHAR(100),
+                author VARCHAR(300),
+                edition VARCHAR(100),
+                publisher VARCHAR(300),
+                purchase_date DATE,
+                category_id UUID REFERENCES "{schemaName}".book_categories(id) ON DELETE SET NULL,
+                description TEXT,
+                price NUMERIC(10,2),
+                cover_image_url VARCHAR(500),
+                total_stock INT NOT NULL DEFAULT 0,
+                issued_copies INT NOT NULL DEFAULT 0,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".book_issues (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                book_id UUID NOT NULL REFERENCES "{schemaName}".books(id),
+                role VARCHAR(50) NOT NULL,
+                student_id UUID REFERENCES "{schemaName}".students(id) ON DELETE SET NULL,
+                employee_id UUID REFERENCES "{schemaName}".employees(id) ON DELETE SET NULL,
+                user_name VARCHAR(200),
+                date_of_issue DATE NOT NULL DEFAULT CURRENT_DATE,
+                date_of_expiry DATE NOT NULL,
+                return_date DATE,
+                fine NUMERIC(10,2) DEFAULT 0,
+                status VARCHAR(20) NOT NULL DEFAULT 'Issued',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_book_issues_book ON "{schemaName}".book_issues(book_id);
+            CREATE INDEX IF NOT EXISTS idx_book_issues_status ON "{schemaName}".book_issues(status);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".event_types (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                icon VARCHAR(100),
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_{schemaName}_event_types_name"
+                ON "{schemaName}".event_types (name);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".events (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(300) NOT NULL,
+                event_type_id UUID REFERENCES "{schemaName}".event_types(id) ON DELETE SET NULL,
+                is_holiday BOOLEAN NOT NULL DEFAULT false,
+                audience VARCHAR(50) NOT NULL DEFAULT 'Everybody',
+                date_of_start DATE NOT NULL,
+                date_of_end DATE NOT NULL,
+                description TEXT,
+                image_url VARCHAR(500),
+                show_website BOOLEAN NOT NULL DEFAULT false,
+                is_published BOOLEAN NOT NULL DEFAULT false,
+                created_by UUID REFERENCES "{schemaName}".users(id) ON DELETE SET NULL,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_events_dates ON "{schemaName}".events(date_of_start, date_of_end);
+
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'A+', 5.00, 80, 100, 'Excellent!', 1 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'A+');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'A', 4.00, 70, 79, 'Very Good', 2 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'A');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'A-', 3.50, 60, 69, 'Good', 3 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'A-');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'B', 3.00, 50, 59, 'Average', 4 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'B');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'C', 2.00, 40, 49, 'Below Average', 5 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'C');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'D', 1.00, 33, 39, 'Pass', 6 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'D');
+            INSERT INTO "{schemaName}".grade_ranges (grade_name, grade_point, min_percentage, max_percentage, remarks, sort_order)
+            SELECT 'F', 0.00, 0, 32, 'Fail', 7 WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".grade_ranges WHERE grade_name = 'F');
+
+            INSERT INTO "{schemaName}".event_types (name, icon)
+            SELECT 'Holiday', 'bell' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".event_types WHERE name = 'Holiday');
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809175641_AddGradesAttendanceLibraryEvents', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+
+    public async Task EnsureStudentAndOfficeAccountingModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureGradesAttendanceLibraryEventsModuleAsync(schemaName, cancellationToken);
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".offline_payment_types (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                instructions TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".offline_payments (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                trx_id VARCHAR(100) NOT NULL UNIQUE,
+                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id),
+                payment_type_id UUID REFERENCES "{schemaName}".offline_payment_types(id),
+                class_id UUID REFERENCES "{schemaName}".classes(id),
+                section_id UUID REFERENCES "{schemaName}".sections(id),
+                payment_date DATE NOT NULL,
+                submit_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                amount NUMERIC(12,2) NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fees_types (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                fee_code VARCHAR(100) NOT NULL,
+                description TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_{schemaName}_fees_types_fee_code"
+                ON "{schemaName}".fees_types (fee_code);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fees_groups (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                description TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fees_group_items (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                group_id UUID NOT NULL REFERENCES "{schemaName}".fees_groups(id) ON DELETE CASCADE,
+                fees_type_id UUID NOT NULL REFERENCES "{schemaName}".fees_types(id),
+                due_date DATE NOT NULL,
+                amount NUMERIC(12,2) NOT NULL,
+                sort_order INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fine_setups (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                group_id UUID NOT NULL REFERENCES "{schemaName}".fees_groups(id),
+                fees_type_id UUID NOT NULL REFERENCES "{schemaName}".fees_types(id),
+                fine_type VARCHAR(50) NOT NULL,
+                fine_value NUMERIC(10,2) NOT NULL,
+                late_fee_frequency VARCHAR(50),
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_{schemaName}_fine_setups_group_type"
+                ON "{schemaName}".fine_setups (group_id, fees_type_id);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fees_allocations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                fees_group_id UUID NOT NULL REFERENCES "{schemaName}".fees_groups(id),
+                academic_year INT NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(class_id, section_id, fees_group_id, academic_year)
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".student_fee_invoices (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                student_id UUID NOT NULL REFERENCES "{schemaName}".students(id),
+                fees_allocation_id UUID NOT NULL REFERENCES "{schemaName}".fees_allocations(id),
+                fees_group_id UUID NOT NULL REFERENCES "{schemaName}".fees_groups(id),
+                class_id UUID NOT NULL REFERENCES "{schemaName}".classes(id),
+                section_id UUID NOT NULL REFERENCES "{schemaName}".sections(id),
+                total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                paid_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                fine_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                due_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+                status VARCHAR(20) NOT NULL DEFAULT 'Unpaid',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_invoices_student ON "{schemaName}".student_fee_invoices(student_id);
+            CREATE INDEX IF NOT EXISTS idx_invoices_status ON "{schemaName}".student_fee_invoices(status);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".fees_reminders (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                frequency VARCHAR(50) NOT NULL,
+                days INT NOT NULL,
+                message TEXT,
+                dlt_template_id VARCHAR(200),
+                notify_student BOOLEAN NOT NULL DEFAULT false,
+                notify_guardian BOOLEAN NOT NULL DEFAULT false,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".voucher_heads (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name VARCHAR(200) NOT NULL,
+                type VARCHAR(20) NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".accounting_accounts (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                account_name VARCHAR(200) NOT NULL,
+                account_number VARCHAR(100),
+                description TEXT,
+                opening_balance NUMERIC(14,2) NOT NULL DEFAULT 0,
+                current_balance NUMERIC(14,2) NOT NULL DEFAULT 0,
+                date DATE NOT NULL DEFAULT CURRENT_DATE,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".accounting_deposits (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                account_id UUID NOT NULL REFERENCES "{schemaName}".accounting_accounts(id),
+                voucher_head_id UUID NOT NULL REFERENCES "{schemaName}".voucher_heads(id),
+                ref_no VARCHAR(200),
+                amount NUMERIC(14,2) NOT NULL,
+                deposit_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                pay_via VARCHAR(50),
+                description TEXT,
+                attachment_url VARCHAR(500),
+                created_by UUID REFERENCES "{schemaName}".users(id),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_deposits_account ON "{schemaName}".accounting_deposits(account_id);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".accounting_expenses (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                account_id UUID NOT NULL REFERENCES "{schemaName}".accounting_accounts(id),
+                voucher_head_id UUID NOT NULL REFERENCES "{schemaName}".voucher_heads(id),
+                ref_no VARCHAR(200),
+                amount NUMERIC(14,2) NOT NULL,
+                expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                pay_via VARCHAR(50),
+                description TEXT,
+                attachment_url VARCHAR(500),
+                created_by UUID REFERENCES "{schemaName}".users(id),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_expenses_account ON "{schemaName}".accounting_expenses(account_id);
+
+            INSERT INTO "{schemaName}".fees_types (name, fee_code) SELECT 'Monthly Fee', 'monthly-fee' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".fees_types WHERE fee_code = 'monthly-fee');
+            INSERT INTO "{schemaName}".fees_types (name, fee_code) SELECT 'Exam Fee', 'exam-fee' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".fees_types WHERE fee_code = 'exam-fee');
+            INSERT INTO "{schemaName}".fees_types (name, fee_code) SELECT 'Admission Fee', 'admission-fee' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".fees_types WHERE fee_code = 'admission-fee');
+
+            INSERT INTO "{schemaName}".voucher_heads (name, type) SELECT 'School Fees', 'Income' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".voucher_heads WHERE name = 'School Fees' AND type = 'Income');
+            INSERT INTO "{schemaName}".voucher_heads (name, type) SELECT 'Government Grant', 'Income' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".voucher_heads WHERE name = 'Government Grant' AND type = 'Income');
+            INSERT INTO "{schemaName}".voucher_heads (name, type) SELECT 'Salary', 'Expense' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".voucher_heads WHERE name = 'Salary' AND type = 'Expense');
+            INSERT INTO "{schemaName}".voucher_heads (name, type) SELECT 'Utilities', 'Expense' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".voucher_heads WHERE name = 'Utilities' AND type = 'Expense');
+            INSERT INTO "{schemaName}".voucher_heads (name, type) SELECT 'Stationery', 'Expense' WHERE NOT EXISTS (SELECT 1 FROM "{schemaName}".voucher_heads WHERE name = 'Stationery' AND type = 'Expense');
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809182321_AddStudentAndOfficeAccounting', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    public async Task EnsureMessageAndSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureStudentAndOfficeAccountingModuleAsync(schemaName, cancellationToken);
+
+        var sql = $$"""
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".messages (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                sender_id UUID NOT NULL REFERENCES "{{schemaName}}".users(id),
+                sender_name VARCHAR(200) NOT NULL,
+                parent_message_id UUID REFERENCES "{{schemaName}}".messages(id),
+                subject VARCHAR(500) NOT NULL,
+                body TEXT NOT NULL,
+                attachment_url VARCHAR(500),
+                attachment_name VARCHAR(255),
+                is_deleted_by_sender BOOLEAN NOT NULL DEFAULT false,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS "idx_{{schemaName}}_messages_sender"
+                ON "{{schemaName}}".messages (sender_id);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".message_recipients (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                message_id UUID NOT NULL REFERENCES "{{schemaName}}".messages(id) ON DELETE CASCADE,
+                recipient_id UUID NOT NULL REFERENCES "{{schemaName}}".users(id),
+                recipient_name VARCHAR(200) NOT NULL,
+                is_read BOOLEAN NOT NULL DEFAULT false,
+                read_at TIMESTAMPTZ,
+                is_important BOOLEAN NOT NULL DEFAULT false,
+                is_deleted BOOLEAN NOT NULL DEFAULT false,
+                deleted_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS "idx_{{schemaName}}_message_recipients_recipient"
+                ON "{{schemaName}}".message_recipients (recipient_id);
+            CREATE INDEX IF NOT EXISTS "idx_{{schemaName}}_message_recipients_message"
+                ON "{{schemaName}}".message_recipients (message_id);
+
+            CREATE TABLE IF NOT EXISTS "{{schemaName}}".school_settings (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                school_name VARCHAR(200),
+                school_code VARCHAR(50),
+                address TEXT,
+                phone VARCHAR(50),
+                email VARCHAR(255),
+                website VARCHAR(255),
+                timezone VARCHAR(100) NOT NULL DEFAULT 'Asia/Dhaka',
+                currency VARCHAR(10) NOT NULL DEFAULT 'BDT',
+                currency_symbol VARCHAR(10) NOT NULL DEFAULT '৳',
+                date_format VARCHAR(20) NOT NULL DEFAULT 'DD/MM/YYYY',
+                language VARCHAR(20) NOT NULL DEFAULT 'en',
+                allow_student_login BOOLEAN NOT NULL DEFAULT true,
+                allow_guardian_login BOOLEAN NOT NULL DEFAULT true,
+                show_fees_in_student_panel BOOLEAN NOT NULL DEFAULT true,
+                show_attendance_in_student_panel BOOLEAN NOT NULL DEFAULT true,
+                show_result_in_student_panel BOOLEAN NOT NULL DEFAULT true,
+                student_panel_notice_message TEXT,
+                system_logo_url VARCHAR(500),
+                text_logo_url VARCHAR(500),
+                printing_logo_url VARCHAR(500),
+                report_card_logo_url VARCHAR(500),
+                payment_gateways JSONB NOT NULL DEFAULT '__EMPTY_JSON_OBJECT__'::jsonb,
+                active_gateways JSONB NOT NULL DEFAULT '[]'::jsonb,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+
+            INSERT INTO "{{schemaName}}".school_settings (id)
+            SELECT gen_random_uuid()
+            WHERE NOT EXISTS (SELECT 1 FROM "{{schemaName}}".school_settings);
+
+            INSERT INTO "{{schemaName}}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809184708_AddMessageAndSettings', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        // ExecuteSqlRawAsync treats the SQL text as a composite format string, so a literal
+        // '{}' (empty JSON object) must be escaped as '{{}}' — inserted post-interpolation
+        // via a placeholder to avoid raw-string brace-escaping ambiguity.
+        sql = sql.Replace("__EMPTY_JSON_OBJECT__", "{{}}");
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    public async Task EnsureBiometricModuleAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        await EnsureMessageAndSettingsModuleAsync(schemaName, cancellationToken);
+
+        var sql = $"""
+            CREATE TABLE IF NOT EXISTS "{schemaName}".biometric_devices (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                serial_number VARCHAR(100) NOT NULL,
+                name VARCHAR(200) NOT NULL,
+                location VARCHAR(200),
+                device_model VARCHAR(50) NOT NULL DEFAULT 'K40-H',
+                exam_grace_minutes_before INT NOT NULL DEFAULT 30,
+                exam_grace_minutes_after INT NOT NULL DEFAULT 30,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                last_seen_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_biometric_devices_sn"
+                ON "{schemaName}".biometric_devices (serial_number);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".biometric_user_maps (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                device_pin VARCHAR(50) NOT NULL,
+                person_type VARCHAR(20) NOT NULL DEFAULT 'Student',
+                student_id UUID REFERENCES "{schemaName}".students(id) ON DELETE CASCADE,
+                employee_id UUID REFERENCES "{schemaName}".employees(id) ON DELETE CASCADE,
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_biometric_user_maps_pin"
+                ON "{schemaName}".biometric_user_maps (device_pin);
+
+            CREATE TABLE IF NOT EXISTS "{schemaName}".biometric_punch_logs (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                device_id UUID REFERENCES "{schemaName}".biometric_devices(id) ON DELETE SET NULL,
+                device_sn VARCHAR(100) NOT NULL,
+                device_pin VARCHAR(50) NOT NULL,
+                punch_time TIMESTAMPTZ NOT NULL,
+                punch_kind VARCHAR(20) NOT NULL DEFAULT 'Unmapped',
+                status_applied VARCHAR(20) NOT NULL DEFAULT 'Present',
+                student_id UUID REFERENCES "{schemaName}".students(id) ON DELETE SET NULL,
+                employee_id UUID REFERENCES "{schemaName}".employees(id) ON DELETE SET NULL,
+                exam_id UUID,
+                subject_id UUID,
+                raw_line VARCHAR(500),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_biometric_punch_logs_time"
+                ON "{schemaName}".biometric_punch_logs (punch_time);
+            CREATE INDEX IF NOT EXISTS "idx_{schemaName}_biometric_punch_logs_pin"
+                ON "{schemaName}".biometric_punch_logs (device_pin);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260809192253_AddBiometricModule', '10.0.0')
             ON CONFLICT DO NOTHING;
             """;
 

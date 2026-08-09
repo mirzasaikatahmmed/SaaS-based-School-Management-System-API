@@ -57,4 +57,26 @@ public class ExamScheduleRepository(TenantDbContext context) : IExamScheduleRepo
         context.ExamScheduleSubjects.RemoveRange(existing);
         await context.ExamScheduleSubjects.AddRangeAsync(subjects, cancellationToken);
     }
+
+    public async Task<ExamScheduleSubject?> FindExamSubjectForPunchAsync(
+        Guid classId, Guid sectionId, DateTime date, TimeSpan time,
+        int graceBeforeMinutes, int graceAfterMinutes, CancellationToken cancellationToken = default)
+    {
+        var candidates = await context.ExamScheduleSubjects
+            .Include(s => s.Schedule).ThenInclude(sc => sc.Exam)
+            .Include(s => s.Schedule).ThenInclude(sc => sc.Class)
+            .Include(s => s.Schedule).ThenInclude(sc => sc.Section)
+            .Where(s => s.Schedule.ClassId == classId
+                && s.Schedule.SectionId == sectionId
+                && s.ExamDate.Date == date.Date)
+            .ToListAsync(cancellationToken);
+
+        var before = TimeSpan.FromMinutes(Math.Max(0, graceBeforeMinutes));
+        var after = TimeSpan.FromMinutes(Math.Max(0, graceAfterMinutes));
+
+        return candidates
+            .Where(s => time >= s.StartingTime - before && time <= s.EndingTime + after)
+            .OrderBy(s => Math.Abs((time - s.StartingTime).Ticks))
+            .FirstOrDefault();
+    }
 }

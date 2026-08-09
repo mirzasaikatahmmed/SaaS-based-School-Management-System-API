@@ -10,6 +10,7 @@ public static class AppConstants
     /// <summary>Matches live ahskbera bcrypt cost ($2y$10$). New hashes use work factor 12.</summary>
     public const int BcryptWorkFactor = 12;
     public const int PresignedUrlExpirySeconds = 3600;
+    public const decimal LibraryFinePerDay = 2m;
 
     /// <summary>
     /// Role names/prefixes aligned with ahskbera_main.roles.
@@ -68,5 +69,11 @@ public static class AppConstants
         public const string Employees = "employees";
         public const string LeaveAttachments = "leave-attachments";
         public const string Imports = "imports";
+        public const string LibraryCovers = "library/covers";
+        public const string Events = "events";
+        public const string AccountingDeposits = "accounting/deposits";
+        public const string AccountingExpenses = "accounting/expenses";
+        public const string Messages = "messages";
+        public const string SettingsLogos = "settings/logos";
     }
 }

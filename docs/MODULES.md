@@ -32,6 +32,16 @@ Super Admin school/tenant APIs typically omit `X-Tenant-ID` unless acting inside
 | 15 | Awards | [15-awards.md](./modules/15-awards.md) |
 | 16 | Academic | [16-academic.md](./modules/16-academic.md) |
 | 17 | Exam Master | [17-exam-master.md](./modules/17-exam-master.md) |
+| 18 | Grades & Positions (Marks) | [18-grades-and-positions.md](./modules/18-grades-and-positions.md) |
+| 19 | Attendance | [19-attendance.md](./modules/19-attendance.md) |
+| 20 | Library | [20-library.md](./modules/20-library.md) |
+| 21 | Events | [21-events.md](./modules/21-events.md) |
+| 22 | Student Accounting | [22-student-accounting.md](./modules/22-student-accounting.md) |
+| 23 | Office Accounting | [23-office-accounting.md](./modules/23-office-accounting.md) |
+| 24 | Messages / Mailbox | [24-messages.md](./modules/24-messages.md) |
+| 25 | Global Settings | [25-global-settings.md](./modules/25-global-settings.md) |
+| 26 | School Settings | [26-school-settings.md](./modules/26-school-settings.md) |
+| 27 | Biometric Attendance (ZKTeco K40-H) | [27-biometric-zkteco.md](./modules/27-biometric-zkteco.md) |
 
 ## Typical end-to-end workflow
 
@@ -69,6 +79,19 @@ flowchart TD
   AC --> EX[Exam terms / halls / distributions]
   EX --> ES[Exam setup + schedule]
   ES --> ME[Mark entries]
+  ME --> GP[Grades + generate position]
+  C --> ATT[Student / employee / exam attendance]
+  C --> LIB[Library books + issues]
+  C --> EVT[Event types + events]
+  C --> SACC[Student accounting / fees]
+  C --> OACC[Office accounting]
+  C --> MSG[Mailbox / messages]
+  A --> GSET[Global settings]
+  A --> SSET[School settings]
+  C --> BIO[Register K40-H devices]
+  BIO --> MAP[Map device PIN to student/employee]
+  MAP --> PUNCH[Device punches via /iclock ADMS]
+  PUNCH --> ATT
 ```
 
 ## Roles quick reference
@@ -77,6 +100,7 @@ flowchart TD
 |------|--------|----------------|
 | Super Admin | `superadmin` | All tenants, school provisioning |
 | School Admin | `admin` | Full access within tenant |
-| Teacher | `teacher` | Read list/detail; submit mark entries |
+| Teacher | `teacher` | Read list/detail; mark entries; positions; student attendance |
+| Librarian | `librarian` | Library books + issue/return |
 | Parent / Guardian | `parent` | Own profile + ward details |
-| Student | `student` | Own profile; published exam schedule/results |
+| Student | `student` | Own profile; published exams; own attendance/issues |

@@ -13,7 +13,8 @@ public class TenantResolutionMiddleware
     {
         "/health",
         "/swagger",
-        "/favicon.ico"
+        "/favicon.ico",
+        "/iclock"
     };
 
     public TenantResolutionMiddleware(RequestDelegate next, ILogger<TenantResolutionMiddleware> logger)

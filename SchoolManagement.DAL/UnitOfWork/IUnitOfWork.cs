@@ -37,6 +37,36 @@ public interface IUnitOfWork : IAsyncDisposable
     IExamRepository Exams { get; }
     IExamScheduleRepository ExamSchedules { get; }
     IMarkEntryRepository MarkEntries { get; }
+    IGradeRangeRepository GradeRanges { get; }
+    IExamPositionRepository ExamPositions { get; }
+    IStudentAttendanceRepository StudentAttendances { get; }
+    IEmployeeAttendanceRepository EmployeeAttendances { get; }
+    IExamAttendanceRepository ExamAttendances { get; }
+    IBookCategoryRepository BookCategories { get; }
+    IBookRepository Books { get; }
+    IBookIssueRepository BookIssues { get; }
+    IEventTypeRepository EventTypes { get; }
+    IEventRepository Events { get; }
+    IFeesTypeRepository FeesTypes { get; }
+    IFeesGroupRepository FeesGroups { get; }
+    IFeesGroupItemRepository FeesGroupItems { get; }
+    IFeesAllocationRepository FeesAllocations { get; }
+    IFineSetupRepository FineSetups { get; }
+    IFeesReminderRepository FeesReminders { get; }
+    IStudentFeeInvoiceRepository StudentFeeInvoices { get; }
+    IOfflinePaymentRepository OfflinePayments { get; }
+    IOfflinePaymentTypeRepository OfflinePaymentTypes { get; }
+    IAccountingAccountRepository AccountingAccounts { get; }
+    IAccountingDepositRepository AccountingDeposits { get; }
+    IAccountingExpenseRepository AccountingExpenses { get; }
+    IVoucherHeadRepository VoucherHeads { get; }
+    IMessageRepository Messages { get; }
+    ISchoolSettingsRepository SchoolSettings { get; }
+    IGlobalSettingsRepository GlobalSettings { get; }
+    IBiometricDeviceRepository BiometricDevices { get; }
+    IBiometricUserMapRepository BiometricUserMaps { get; }
+    IBiometricPunchLogRepository BiometricPunchLogs { get; }
+    IBiometricDeviceRegistryRepository BiometricDeviceRegistries { get; }
     Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTenantTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTenantTransactionAsync(CancellationToken cancellationToken = default);

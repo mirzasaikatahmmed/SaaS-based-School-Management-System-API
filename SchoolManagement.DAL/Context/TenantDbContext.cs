@@ -76,6 +76,35 @@ public class TenantDbContext : DbContext
     public DbSet<ExamSchedule> ExamSchedules => Set<ExamSchedule>();
     public DbSet<ExamScheduleSubject> ExamScheduleSubjects => Set<ExamScheduleSubject>();
     public DbSet<MarkEntry> MarkEntries => Set<MarkEntry>();
+    public DbSet<GradeRange> GradeRanges => Set<GradeRange>();
+    public DbSet<ExamPosition> ExamPositions => Set<ExamPosition>();
+    public DbSet<StudentAttendance> StudentAttendances => Set<StudentAttendance>();
+    public DbSet<EmployeeAttendance> EmployeeAttendances => Set<EmployeeAttendance>();
+    public DbSet<ExamAttendance> ExamAttendances => Set<ExamAttendance>();
+    public DbSet<BookCategory> BookCategories => Set<BookCategory>();
+    public DbSet<Book> Books => Set<Book>();
+    public DbSet<BookIssue> BookIssues => Set<BookIssue>();
+    public DbSet<EventType> EventTypes => Set<EventType>();
+    public DbSet<SchoolEvent> Events => Set<SchoolEvent>();
+    public DbSet<OfflinePaymentType> OfflinePaymentTypes => Set<OfflinePaymentType>();
+    public DbSet<OfflinePayment> OfflinePayments => Set<OfflinePayment>();
+    public DbSet<FeesType> FeesTypes => Set<FeesType>();
+    public DbSet<FeesGroup> FeesGroups => Set<FeesGroup>();
+    public DbSet<FeesGroupItem> FeesGroupItems => Set<FeesGroupItem>();
+    public DbSet<FineSetup> FineSetups => Set<FineSetup>();
+    public DbSet<FeesAllocation> FeesAllocations => Set<FeesAllocation>();
+    public DbSet<StudentFeeInvoice> StudentFeeInvoices => Set<StudentFeeInvoice>();
+    public DbSet<FeesReminder> FeesReminders => Set<FeesReminder>();
+    public DbSet<VoucherHead> VoucherHeads => Set<VoucherHead>();
+    public DbSet<AccountingAccount> AccountingAccounts => Set<AccountingAccount>();
+    public DbSet<AccountingDeposit> AccountingDeposits => Set<AccountingDeposit>();
+    public DbSet<AccountingExpense> AccountingExpenses => Set<AccountingExpense>();
+    public DbSet<Message> Messages => Set<Message>();
+    public DbSet<MessageRecipient> MessageRecipients => Set<MessageRecipient>();
+    public DbSet<SchoolSettings> SchoolSettings => Set<SchoolSettings>();
+    public DbSet<BiometricDevice> BiometricDevices => Set<BiometricDevice>();
+    public DbSet<BiometricUserMap> BiometricUserMaps => Set<BiometricUserMap>();
+    public DbSet<BiometricPunchLog> BiometricPunchLogs => Set<BiometricPunchLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1082,6 +1111,561 @@ public class TenantDbContext : DbContext
             entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<GradeRange>(entity =>
+        {
+            entity.ToTable("grade_ranges", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.GradeName).HasColumnName("grade_name").HasMaxLength(10).IsRequired();
+            entity.Property(e => e.GradePoint).HasColumnName("grade_point").HasPrecision(4, 2);
+            entity.Property(e => e.MinPercentage).HasColumnName("min_percentage").HasPrecision(5, 2);
+            entity.Property(e => e.MaxPercentage).HasColumnName("max_percentage").HasPrecision(5, 2);
+            entity.Property(e => e.Remarks).HasColumnName("remarks").HasMaxLength(200);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.GradeName).IsUnique();
+        });
+
+        modelBuilder.Entity<ExamPosition>(entity =>
+        {
+            entity.ToTable("exam_positions", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.AcademicYear).HasColumnName("academic_year");
+            entity.Property(e => e.TotalMarks).HasColumnName("total_marks").HasPrecision(8, 2).HasDefaultValue(0m);
+            entity.Property(e => e.FullMarks).HasColumnName("full_marks").HasPrecision(8, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Percentage).HasColumnName("percentage").HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Gpa).HasColumnName("gpa").HasPrecision(4, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Result).HasColumnName("result").HasMaxLength(10).IsRequired().HasDefaultValue("FAIL");
+            entity.Property(e => e.Position).HasColumnName("position");
+            entity.Property(e => e.PrincipalComments).HasColumnName("principal_comments");
+            entity.Property(e => e.TeacherComments).HasColumnName("teacher_comments");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.ExamId, e.ClassId, e.SectionId, e.StudentId }).IsUnique();
+            entity.HasOne(e => e.Exam).WithMany().HasForeignKey(e => e.ExamId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StudentAttendance>(entity =>
+        {
+            entity.ToTable("student_attendance", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.AttendanceDate).HasColumnName("attendance_date").HasColumnType("date");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Present");
+            entity.Property(e => e.Remarks).HasColumnName("remarks");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.StudentId, e.AttendanceDate }).IsUnique();
+            entity.HasIndex(e => e.AttendanceDate).HasDatabaseName("idx_student_att_date");
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<EmployeeAttendance>(entity =>
+        {
+            entity.ToTable("employee_attendance", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+            entity.Property(e => e.AttendanceDate).HasColumnName("attendance_date").HasColumnType("date");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20);
+            entity.Property(e => e.Remarks).HasColumnName("remarks");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.EmployeeId, e.AttendanceDate }).IsUnique();
+            entity.HasIndex(e => e.AttendanceDate).HasDatabaseName("idx_employee_att_date");
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ExamAttendance>(entity =>
+        {
+            entity.ToTable("exam_attendance", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Present");
+            entity.Property(e => e.Remarks).HasColumnName("remarks");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.ExamId, e.SubjectId, e.StudentId }).IsUnique();
+            entity.HasOne(e => e.Exam).WithMany().HasForeignKey(e => e.ExamId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<BookCategory>(entity =>
+        {
+            entity.ToTable("book_categories", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<Book>(entity =>
+        {
+            entity.ToTable("books", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.IsbnNo).HasColumnName("isbn_no").HasMaxLength(100);
+            entity.Property(e => e.Author).HasColumnName("author").HasMaxLength(300);
+            entity.Property(e => e.Edition).HasColumnName("edition").HasMaxLength(100);
+            entity.Property(e => e.Publisher).HasColumnName("publisher").HasMaxLength(300);
+            entity.Property(e => e.PurchaseDate).HasColumnName("purchase_date").HasColumnType("date");
+            entity.Property(e => e.CategoryId).HasColumnName("category_id");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Price).HasColumnName("price").HasPrecision(10, 2);
+            entity.Property(e => e.CoverImageUrl).HasColumnName("cover_image_url").HasMaxLength(500);
+            entity.Property(e => e.TotalStock).HasColumnName("total_stock").HasDefaultValue(0);
+            entity.Property(e => e.IssuedCopies).HasColumnName("issued_copies").HasDefaultValue(0);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasOne(e => e.Category).WithMany(c => c.Books).HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<BookIssue>(entity =>
+        {
+            entity.ToTable("book_issues", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.BookId).HasColumnName("book_id");
+            entity.Property(e => e.Role).HasColumnName("role").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+            entity.Property(e => e.UserName).HasColumnName("user_name").HasMaxLength(200);
+            entity.Property(e => e.DateOfIssue).HasColumnName("date_of_issue").HasColumnType("date");
+            entity.Property(e => e.DateOfExpiry).HasColumnName("date_of_expiry").HasColumnType("date");
+            entity.Property(e => e.ReturnDate).HasColumnName("return_date").HasColumnType("date");
+            entity.Property(e => e.Fine).HasColumnName("fine").HasPrecision(10, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Issued");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.BookId).HasDatabaseName("idx_book_issues_book");
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_book_issues_status");
+            entity.HasOne(e => e.Book).WithMany(b => b.Issues).HasForeignKey(e => e.BookId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<EventType>(entity =>
+        {
+            entity.ToTable("event_types", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Icon).HasColumnName("icon").HasMaxLength(100);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<SchoolEvent>(entity =>
+        {
+            entity.ToTable("events", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(300).IsRequired();
+            entity.Property(e => e.EventTypeId).HasColumnName("event_type_id");
+            entity.Property(e => e.IsHoliday).HasColumnName("is_holiday").HasDefaultValue(false);
+            entity.Property(e => e.Audience).HasColumnName("audience").HasMaxLength(50).IsRequired().HasDefaultValue("Everybody");
+            entity.Property(e => e.DateOfStart).HasColumnName("date_of_start").HasColumnType("date");
+            entity.Property(e => e.DateOfEnd).HasColumnName("date_of_end").HasColumnType("date");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url").HasMaxLength(500);
+            entity.Property(e => e.ShowWebsite).HasColumnName("show_website").HasDefaultValue(false);
+            entity.Property(e => e.IsPublished).HasColumnName("is_published").HasDefaultValue(false);
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.DateOfStart, e.DateOfEnd }).HasDatabaseName("idx_events_dates");
+            entity.HasOne(e => e.EventType).WithMany(t => t.Events).HasForeignKey(e => e.EventTypeId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<OfflinePaymentType>(entity =>
+        {
+            entity.ToTable("offline_payment_types", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Instructions).HasColumnName("instructions");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<OfflinePayment>(entity =>
+        {
+            entity.ToTable("offline_payments", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.TrxId).HasColumnName("trx_id").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.PaymentTypeId).HasColumnName("payment_type_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.PaymentDate).HasColumnName("payment_date").HasColumnType("date");
+            entity.Property(e => e.SubmitDate).HasColumnName("submit_date").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(12, 2);
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Pending");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.TrxId).IsUnique();
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.PaymentType).WithMany().HasForeignKey(e => e.PaymentTypeId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<FeesType>(entity =>
+        {
+            entity.ToTable("fees_types", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.FeeCode).HasColumnName("fee_code").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.FeeCode).IsUnique();
+        });
+
+        modelBuilder.Entity<FeesGroup>(entity =>
+        {
+            entity.ToTable("fees_groups", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<FeesGroupItem>(entity =>
+        {
+            entity.ToTable("fees_group_items", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+            entity.Property(e => e.FeesTypeId).HasColumnName("fees_type_id");
+            entity.Property(e => e.DueDate).HasColumnName("due_date").HasColumnType("date");
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(12, 2);
+            entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasOne(e => e.Group).WithMany(g => g.Items).HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.FeesType).WithMany(t => t.GroupItems).HasForeignKey(e => e.FeesTypeId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FineSetup>(entity =>
+        {
+            entity.ToTable("fine_setups", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+            entity.Property(e => e.FeesTypeId).HasColumnName("fees_type_id");
+            entity.Property(e => e.FineType).HasColumnName("fine_type").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.FineValue).HasColumnName("fine_value").HasPrecision(10, 2);
+            entity.Property(e => e.LateFeeFrequency).HasColumnName("late_fee_frequency").HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.GroupId, e.FeesTypeId }).IsUnique();
+            entity.HasOne(e => e.Group).WithMany().HasForeignKey(e => e.GroupId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.FeesType).WithMany().HasForeignKey(e => e.FeesTypeId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FeesAllocation>(entity =>
+        {
+            entity.ToTable("fees_allocations", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.FeesGroupId).HasColumnName("fees_group_id");
+            entity.Property(e => e.AcademicYear).HasColumnName("academic_year");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => new { e.ClassId, e.SectionId, e.FeesGroupId, e.AcademicYear }).IsUnique();
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.FeesGroup).WithMany(g => g.Allocations).HasForeignKey(e => e.FeesGroupId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StudentFeeInvoice>(entity =>
+        {
+            entity.ToTable("student_fee_invoices", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.FeesAllocationId).HasColumnName("fees_allocation_id");
+            entity.Property(e => e.FeesGroupId).HasColumnName("fees_group_id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(e => e.PaidAmount).HasColumnName("paid_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(e => e.FineAmount).HasColumnName("fine_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(e => e.DueAmount).HasColumnName("due_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired().HasDefaultValue("Unpaid");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.StudentId).HasDatabaseName("idx_invoices_student");
+            entity.HasIndex(e => e.Status).HasDatabaseName("idx_invoices_status");
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.FeesAllocation).WithMany(a => a.Invoices).HasForeignKey(e => e.FeesAllocationId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.FeesGroup).WithMany().HasForeignKey(e => e.FeesGroupId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Class).WithMany().HasForeignKey(e => e.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Section).WithMany().HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FeesReminder>(entity =>
+        {
+            entity.ToTable("fees_reminders", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Frequency).HasColumnName("frequency").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Days).HasColumnName("days");
+            entity.Property(e => e.Message).HasColumnName("message");
+            entity.Property(e => e.DltTemplateId).HasColumnName("dlt_template_id").HasMaxLength(200);
+            entity.Property(e => e.NotifyStudent).HasColumnName("notify_student").HasDefaultValue(false);
+            entity.Property(e => e.NotifyGuardian).HasColumnName("notify_guardian").HasDefaultValue(false);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<VoucherHead>(entity =>
+        {
+            entity.ToTable("voucher_heads", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Type).HasColumnName("type").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<AccountingAccount>(entity =>
+        {
+            entity.ToTable("accounting_accounts", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.AccountName).HasColumnName("account_name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.AccountNumber).HasColumnName("account_number").HasMaxLength(100);
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.OpeningBalance).HasColumnName("opening_balance").HasPrecision(14, 2).HasDefaultValue(0m);
+            entity.Property(e => e.CurrentBalance).HasColumnName("current_balance").HasPrecision(14, 2).HasDefaultValue(0m);
+            entity.Property(e => e.Date).HasColumnName("date").HasColumnType("date");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<AccountingDeposit>(entity =>
+        {
+            entity.ToTable("accounting_deposits", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.VoucherHeadId).HasColumnName("voucher_head_id");
+            entity.Property(e => e.RefNo).HasColumnName("ref_no").HasMaxLength(200);
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(14, 2);
+            entity.Property(e => e.DepositDate).HasColumnName("deposit_date").HasColumnType("date");
+            entity.Property(e => e.PayVia).HasColumnName("pay_via").HasMaxLength(50);
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.AttachmentUrl).HasColumnName("attachment_url").HasMaxLength(500);
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.AccountId).HasDatabaseName("idx_deposits_account");
+            entity.HasOne(e => e.Account).WithMany(a => a.Deposits).HasForeignKey(e => e.AccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.VoucherHead).WithMany().HasForeignKey(e => e.VoucherHeadId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<AccountingExpense>(entity =>
+        {
+            entity.ToTable("accounting_expenses", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.VoucherHeadId).HasColumnName("voucher_head_id");
+            entity.Property(e => e.RefNo).HasColumnName("ref_no").HasMaxLength(200);
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(14, 2);
+            entity.Property(e => e.ExpenseDate).HasColumnName("expense_date").HasColumnType("date");
+            entity.Property(e => e.PayVia).HasColumnName("pay_via").HasMaxLength(50);
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.AttachmentUrl).HasColumnName("attachment_url").HasMaxLength(500);
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.AccountId).HasDatabaseName("idx_expenses_account");
+            entity.HasOne(e => e.Account).WithMany(a => a.Expenses).HasForeignKey(e => e.AccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.VoucherHead).WithMany().HasForeignKey(e => e.VoucherHeadId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.ToTable("messages", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.SenderId).HasColumnName("sender_id");
+            entity.Property(e => e.SenderName).HasColumnName("sender_name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.ParentMessageId).HasColumnName("parent_message_id");
+            entity.Property(e => e.Subject).HasColumnName("subject").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.Body).HasColumnName("body").IsRequired();
+            entity.Property(e => e.AttachmentUrl).HasColumnName("attachment_url").HasMaxLength(500);
+            entity.Property(e => e.AttachmentName).HasColumnName("attachment_name").HasMaxLength(255);
+            entity.Property(e => e.IsDeletedBySender).HasColumnName("is_deleted_by_sender").HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.SenderId).HasDatabaseName("idx_messages_sender");
+            entity.HasOne(e => e.Sender).WithMany().HasForeignKey(e => e.SenderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ParentMessage).WithMany().HasForeignKey(e => e.ParentMessageId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MessageRecipient>(entity =>
+        {
+            entity.ToTable("message_recipients", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.MessageId).HasColumnName("message_id");
+            entity.Property(e => e.RecipientId).HasColumnName("recipient_id");
+            entity.Property(e => e.RecipientName).HasColumnName("recipient_name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.IsRead).HasColumnName("is_read").HasDefaultValue(false);
+            entity.Property(e => e.ReadAt).HasColumnName("read_at");
+            entity.Property(e => e.IsImportant).HasColumnName("is_important").HasDefaultValue(false);
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.RecipientId).HasDatabaseName("idx_message_recipients_recipient");
+            entity.HasIndex(e => e.MessageId).HasDatabaseName("idx_message_recipients_message");
+            entity.HasOne(e => e.Message).WithMany(m => m.Recipients).HasForeignKey(e => e.MessageId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Recipient).WithMany().HasForeignKey(e => e.RecipientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SchoolSettings>(entity =>
+        {
+            entity.ToTable("school_settings", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.SchoolName).HasColumnName("school_name").HasMaxLength(200);
+            entity.Property(e => e.SchoolCode).HasColumnName("school_code").HasMaxLength(50);
+            entity.Property(e => e.Address).HasColumnName("address");
+            entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(50);
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(255);
+            entity.Property(e => e.Website).HasColumnName("website").HasMaxLength(255);
+            entity.Property(e => e.Timezone).HasColumnName("timezone").HasMaxLength(100).HasDefaultValue("Asia/Dhaka");
+            entity.Property(e => e.Currency).HasColumnName("currency").HasMaxLength(10).HasDefaultValue("BDT");
+            entity.Property(e => e.CurrencySymbol).HasColumnName("currency_symbol").HasMaxLength(10).HasDefaultValue("৳");
+            entity.Property(e => e.DateFormat).HasColumnName("date_format").HasMaxLength(20).HasDefaultValue("DD/MM/YYYY");
+            entity.Property(e => e.Language).HasColumnName("language").HasMaxLength(20).HasDefaultValue("en");
+            entity.Property(e => e.AllowStudentLogin).HasColumnName("allow_student_login").HasDefaultValue(true);
+            entity.Property(e => e.AllowGuardianLogin).HasColumnName("allow_guardian_login").HasDefaultValue(true);
+            entity.Property(e => e.ShowFeesInStudentPanel).HasColumnName("show_fees_in_student_panel").HasDefaultValue(true);
+            entity.Property(e => e.ShowAttendanceInStudentPanel).HasColumnName("show_attendance_in_student_panel").HasDefaultValue(true);
+            entity.Property(e => e.ShowResultInStudentPanel).HasColumnName("show_result_in_student_panel").HasDefaultValue(true);
+            entity.Property(e => e.StudentPanelNoticeMessage).HasColumnName("student_panel_notice_message");
+            entity.Property(e => e.SystemLogoUrl).HasColumnName("system_logo_url").HasMaxLength(500);
+            entity.Property(e => e.TextLogoUrl).HasColumnName("text_logo_url").HasMaxLength(500);
+            entity.Property(e => e.PrintingLogoUrl).HasColumnName("printing_logo_url").HasMaxLength(500);
+            entity.Property(e => e.ReportCardLogoUrl).HasColumnName("report_card_logo_url").HasMaxLength(500);
+            entity.Property(e => e.PaymentGateways).HasColumnName("payment_gateways").HasColumnType("jsonb").HasDefaultValue("{}");
+            entity.Property(e => e.ActiveGateways).HasColumnName("active_gateways").HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<BiometricDevice>(entity =>
+        {
+            entity.ToTable("biometric_devices", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.SerialNumber).HasColumnName("serial_number").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(200);
+            entity.Property(e => e.DeviceModel).HasColumnName("device_model").HasMaxLength(50).HasDefaultValue("K40-H");
+            entity.Property(e => e.ExamGraceMinutesBefore).HasColumnName("exam_grace_minutes_before").HasDefaultValue(30);
+            entity.Property(e => e.ExamGraceMinutesAfter).HasColumnName("exam_grace_minutes_after").HasDefaultValue(30);
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.LastSeenAt).HasColumnName("last_seen_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.SerialNumber).IsUnique();
+        });
+
+        modelBuilder.Entity<BiometricUserMap>(entity =>
+        {
+            entity.ToTable("biometric_user_maps", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.DevicePin).HasColumnName("device_pin").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.PersonType).HasColumnName("person_type").HasMaxLength(20).IsRequired().HasDefaultValue("Student");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.DevicePin).IsUnique();
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BiometricPunchLog>(entity =>
+        {
+            entity.ToTable("biometric_punch_logs", schema);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.DeviceSn).HasColumnName("device_sn").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.DevicePin).HasColumnName("device_pin").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.PunchTime).HasColumnName("punch_time");
+            entity.Property(e => e.PunchKind).HasColumnName("punch_kind").HasMaxLength(20).IsRequired().HasDefaultValue("Unmapped");
+            entity.Property(e => e.StatusApplied).HasColumnName("status_applied").HasMaxLength(20).HasDefaultValue("Present");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.RawLine).HasColumnName("raw_line").HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
+            entity.HasIndex(e => e.PunchTime).HasDatabaseName("idx_biometric_punch_logs_time");
+            entity.HasIndex(e => e.DevicePin).HasDatabaseName("idx_biometric_punch_logs_pin");
+            entity.HasOne(e => e.Device).WithMany(d => d.PunchLogs).HasForeignKey(e => e.DeviceId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Student).WithMany().HasForeignKey(e => e.StudentId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

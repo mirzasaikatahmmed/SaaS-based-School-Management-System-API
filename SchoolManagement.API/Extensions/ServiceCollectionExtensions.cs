@@ -82,6 +82,36 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExamService, ExamService>();
         services.AddScoped<IExamScheduleService, ExamScheduleService>();
         services.AddScoped<IMarkEntryService, MarkEntryService>();
+        services.AddScoped<IGradeRangeService, GradeRangeService>();
+        services.AddScoped<IExamPositionService, ExamPositionService>();
+        services.AddScoped<IStudentAttendanceService, StudentAttendanceService>();
+        services.AddScoped<IEmployeeAttendanceService, EmployeeAttendanceService>();
+        services.AddScoped<IExamAttendanceService, ExamAttendanceService>();
+        services.AddScoped<IBookCategoryService, BookCategoryService>();
+        services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IBookIssueService, BookIssueService>();
+        services.AddScoped<IEventTypeService, EventTypeService>();
+        services.AddScoped<IEventService, EventService>();
+        services.AddScoped<IFeesTypeService, FeesTypeService>();
+        services.AddScoped<IFeesGroupService, FeesGroupService>();
+        services.AddScoped<IFeesAllocationService, FeesAllocationService>();
+        services.AddScoped<IFineSetupService, FineSetupService>();
+        services.AddScoped<IFeesReminderService, FeesReminderService>();
+        services.AddScoped<IStudentFeeInvoiceService, StudentFeeInvoiceService>();
+        services.AddScoped<IOfflinePaymentService, OfflinePaymentService>();
+        services.AddScoped<IOfflinePaymentTypeService, OfflinePaymentTypeService>();
+        services.AddScoped<IAccountingAccountService, AccountingAccountService>();
+        services.AddScoped<IAccountingDepositService, AccountingDepositService>();
+        services.AddScoped<IAccountingExpenseService, AccountingExpenseService>();
+        services.AddScoped<IVoucherHeadService, VoucherHeadService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IGlobalSettingsService, GlobalSettingsService>();
+        services.AddScoped<ISchoolSettingsService, SchoolSettingsService>();
+        services.AddScoped<IBiometricPunchProcessor, BiometricPunchProcessor>();
+        services.AddScoped<IBiometricDeviceService, BiometricDeviceService>();
+        services.AddScoped<IBiometricUserMapService, BiometricUserMapService>();
+        services.AddScoped<IBiometricPunchService, BiometricPunchService>();
+        services.AddScoped<IZkTecoAdmsService, ZkTecoAdmsService>();
         services.AddSingleton<IStorageService, StorageService>();
 
 
@@ -99,6 +129,9 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<GiveAwardValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateClassValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateExamValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateGradeRangeValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateBookValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateEventValidator>();
         services.AddScoped<ValidationFilter>();
 
         return services;

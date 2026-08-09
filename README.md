@@ -26,6 +26,16 @@ Multi-tenant school management API built with **.NET 10**. Each school gets an i
 | **Awards** | Give awards to employees or students |
 | **Academic** | Classes, sections, subjects, class teachers, timetables, promotion |
 | **Exam Master** | Terms, halls, mark distributions, exam setup, schedules, mark entries |
+| **Grades & positions** | Grade ranges (A+–F); auto-generate ranks/GPA/PASS-FAIL from mark entries |
+| **Attendance** | Student, employee (by role), and exam-subject attendance + reports |
+| **Library** | Categories, books + cover upload, issue/return, fine, my issues |
+| **Events** | Event types (icons), events, publish/website toggles, public list |
+| **Student accounting** | Fees types/groups, fine, allocation, invoices, offline payments, reminders |
+| **Office accounting** | Voucher heads, accounts, deposits/expenses + attachments, transactions (Dr/Cr/running balance) |
+| **Messages** | Inbox, sent, important, trash, reply, attachments, unread count |
+| **Global settings** | Platform-wide institute, currency, timezone, upload limits (Super Admin) |
+| **School settings** | Per-school general/panel/payment gateways + logo uploads |
+| **Biometric attendance** | ZKTeco K40-H multi-device ADMS push protocol; auto student/employee/exam attendance from fingerprint punches |
 
 ---
 
@@ -135,11 +145,22 @@ make push TAG=v1.0
 | `/api/awards` | Awards |
 | `/api/academic` | Classes, sections, subjects, schedules, promotion |
 | `/api/exam` | Terms, halls, distributions, exams, schedules, mark entries |
+| `/api/marks` | Grade ranges, exam positions |
+| `/api/attendance` | Student / employee / exam attendance |
+| `/api/library` | Categories, books, issues |
+| `/api/events` | Event types, events (+ `/public`) |
+| `/api/student-accounting` | Fees, invoices, offline payments, reminders |
+| `/api/office-accounting` | Accounts, deposits, expenses, transactions |
+| `/api/messages` | Mailbox (inbox/sent/important/trash) |
+| `/api/settings/global` | Platform global settings (Super Admin) |
+| `/api/settings/school` | Per-school settings + logos |
+| `/api/biometric` | Devices, PIN↔person maps, punch logs (Admin) |
+| `/iclock` | ZKTeco ADMS device push endpoint (anonymous, plain text) |
 
 Interactive docs: **Swagger** at http://localhost:5000/swagger (Development).  
 Swagger title/banner shows a live **endpoint counter** (GET / POST / PATCH / DELETE breakdown).
 
-Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–17**, including [Exam Master](docs/modules/17-exam-master.md))  
+Per-module docs: [`docs/MODULES.md`](docs/MODULES.md) (modules **1–27**)  
 System workflow: [`docs/SYSTEM_WORKFLOW.md`](docs/SYSTEM_WORKFLOW.md)
 
 ---

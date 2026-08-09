@@ -45,6 +45,36 @@ public class UnitOfWork : IUnitOfWork
     private IExamRepository? _examRepository;
     private IExamScheduleRepository? _examScheduleRepository;
     private IMarkEntryRepository? _markEntryRepository;
+    private IGradeRangeRepository? _gradeRangeRepository;
+    private IExamPositionRepository? _examPositionRepository;
+    private IStudentAttendanceRepository? _studentAttendanceRepository;
+    private IEmployeeAttendanceRepository? _employeeAttendanceRepository;
+    private IExamAttendanceRepository? _examAttendanceRepository;
+    private IBookCategoryRepository? _bookCategoryRepository;
+    private IBookRepository? _bookRepository;
+    private IBookIssueRepository? _bookIssueRepository;
+    private IEventTypeRepository? _eventTypeRepository;
+    private IEventRepository? _eventRepository;
+    private IFeesTypeRepository? _feesTypeRepository;
+    private IFeesGroupRepository? _feesGroupRepository;
+    private IFeesGroupItemRepository? _feesGroupItemRepository;
+    private IFeesAllocationRepository? _feesAllocationRepository;
+    private IFineSetupRepository? _fineSetupRepository;
+    private IFeesReminderRepository? _feesReminderRepository;
+    private IStudentFeeInvoiceRepository? _studentFeeInvoiceRepository;
+    private IOfflinePaymentRepository? _offlinePaymentRepository;
+    private IOfflinePaymentTypeRepository? _offlinePaymentTypeRepository;
+    private IAccountingAccountRepository? _accountingAccountRepository;
+    private IAccountingDepositRepository? _accountingDepositRepository;
+    private IAccountingExpenseRepository? _accountingExpenseRepository;
+    private IVoucherHeadRepository? _voucherHeadRepository;
+    private IMessageRepository? _messageRepository;
+    private ISchoolSettingsRepository? _schoolSettingsRepository;
+    private IGlobalSettingsRepository? _globalSettingsRepository;
+    private IBiometricDeviceRepository? _biometricDeviceRepository;
+    private IBiometricUserMapRepository? _biometricUserMapRepository;
+    private IBiometricPunchLogRepository? _biometricPunchLogRepository;
+    private IBiometricDeviceRegistryRepository? _biometricDeviceRegistryRepository;
     private IDbContextTransaction? _tenantTransaction;
     private bool _disposed;
 
@@ -342,6 +372,264 @@ public class UnitOfWork : IUnitOfWork
             return _markEntryRepository ??= new MarkEntryRepository(_tenantContextDb!);
         }
     }
+
+    public IGradeRangeRepository GradeRanges
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _gradeRangeRepository ??= new GradeRangeRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamPositionRepository ExamPositions
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examPositionRepository ??= new ExamPositionRepository(_tenantContextDb!);
+        }
+    }
+
+    public IStudentAttendanceRepository StudentAttendances
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentAttendanceRepository ??= new StudentAttendanceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IEmployeeAttendanceRepository EmployeeAttendances
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _employeeAttendanceRepository ??= new EmployeeAttendanceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IExamAttendanceRepository ExamAttendances
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _examAttendanceRepository ??= new ExamAttendanceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBookCategoryRepository BookCategories
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _bookCategoryRepository ??= new BookCategoryRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBookRepository Books
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _bookRepository ??= new BookRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBookIssueRepository BookIssues
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _bookIssueRepository ??= new BookIssueRepository(_tenantContextDb!);
+        }
+    }
+
+    public IEventTypeRepository EventTypes
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _eventTypeRepository ??= new EventTypeRepository(_tenantContextDb!);
+        }
+    }
+
+    public IEventRepository Events
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _eventRepository ??= new EventRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFeesTypeRepository FeesTypes
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _feesTypeRepository ??= new FeesTypeRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFeesGroupRepository FeesGroups
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _feesGroupRepository ??= new FeesGroupRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFeesGroupItemRepository FeesGroupItems
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _feesGroupItemRepository ??= new FeesGroupItemRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFeesAllocationRepository FeesAllocations
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _feesAllocationRepository ??= new FeesAllocationRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFineSetupRepository FineSetups
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _fineSetupRepository ??= new FineSetupRepository(_tenantContextDb!);
+        }
+    }
+
+    public IFeesReminderRepository FeesReminders
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _feesReminderRepository ??= new FeesReminderRepository(_tenantContextDb!);
+        }
+    }
+
+    public IStudentFeeInvoiceRepository StudentFeeInvoices
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _studentFeeInvoiceRepository ??= new StudentFeeInvoiceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IOfflinePaymentRepository OfflinePayments
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _offlinePaymentRepository ??= new OfflinePaymentRepository(_tenantContextDb!);
+        }
+    }
+
+    public IOfflinePaymentTypeRepository OfflinePaymentTypes
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _offlinePaymentTypeRepository ??= new OfflinePaymentTypeRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAccountingAccountRepository AccountingAccounts
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _accountingAccountRepository ??= new AccountingAccountRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAccountingDepositRepository AccountingDeposits
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _accountingDepositRepository ??= new AccountingDepositRepository(_tenantContextDb!);
+        }
+    }
+
+    public IAccountingExpenseRepository AccountingExpenses
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _accountingExpenseRepository ??= new AccountingExpenseRepository(_tenantContextDb!);
+        }
+    }
+
+    public IVoucherHeadRepository VoucherHeads
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _voucherHeadRepository ??= new VoucherHeadRepository(_tenantContextDb!);
+        }
+    }
+
+    public IMessageRepository Messages
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _messageRepository ??= new MessageRepository(_tenantContextDb!);
+        }
+    }
+
+    public ISchoolSettingsRepository SchoolSettings
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _schoolSettingsRepository ??= new SchoolSettingsRepository(_tenantContextDb!);
+        }
+    }
+
+    public IGlobalSettingsRepository GlobalSettings =>
+        _globalSettingsRepository ??= new GlobalSettingsRepository(_masterContext);
+
+    public IBiometricDeviceRepository BiometricDevices
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _biometricDeviceRepository ??= new BiometricDeviceRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBiometricUserMapRepository BiometricUserMaps
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _biometricUserMapRepository ??= new BiometricUserMapRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBiometricPunchLogRepository BiometricPunchLogs
+    {
+        get
+        {
+            EnsureTenantDb();
+            return _biometricPunchLogRepository ??= new BiometricPunchLogRepository(_tenantContextDb!);
+        }
+    }
+
+    public IBiometricDeviceRegistryRepository BiometricDeviceRegistries =>
+        _biometricDeviceRegistryRepository ??= new BiometricDeviceRegistryRepository(_masterContext);
 
     public async Task BeginTenantTransactionAsync(CancellationToken cancellationToken = default)
     {
