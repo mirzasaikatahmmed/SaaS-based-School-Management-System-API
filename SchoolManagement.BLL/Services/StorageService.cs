@@ -8,6 +8,10 @@ using SchoolManagement.Common.Constants;
 
 namespace SchoolManagement.BLL.Services;
 
+/// <summary>
+/// Shared MinIO bucket with school-based folders: {bucket}/{tenantSlug}/…
+/// Legacy per-school buckets (school-{slug}) are still readable for old object keys.
+/// </summary>
 public class StorageService : IStorageService
 {
     private readonly IMinioClient _minioClient;
@@ -26,22 +30,23 @@ public class StorageService : IStorageService
             .Build();
     }
 
+    private string SharedBucket =>
+        string.IsNullOrWhiteSpace(_settings.BucketName)
+            ? AppConstants.DefaultSharedBucket
+            : _settings.BucketName.Trim().ToLowerInvariant();
+
     public async Task VerifyConnectionAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var buckets = await _minioClient.ListBucketsAsync(cancellationToken);
             _logger.LogInformation("MinIO connection verified. Buckets: {Count}", buckets.Buckets.Count);
+            await EnsureSharedBucketAsync(cancellationToken);
 
-            const string adminBucket = "school-platform-admin";
-            var exists = await _minioClient.BucketExistsAsync(
-                new BucketExistsArgs().WithBucket(adminBucket), cancellationToken);
-
-            if (!exists)
+            // Platform folder placeholders (not per-school)
+            foreach (var folder in new[] { "platform", "platform/logos" })
             {
-                await _minioClient.MakeBucketAsync(
-                    new MakeBucketArgs().WithBucket(adminBucket), cancellationToken);
-                _logger.LogInformation("Created default admin bucket {Bucket}", adminBucket);
+                await PutPlaceholderAsync(SharedBucket, $"{folder}/.keep", cancellationToken);
             }
         }
         catch (Exception ex)
@@ -52,31 +57,24 @@ public class StorageService : IStorageService
 
     public async Task EnsureBucketAsync(string tenantSlug, CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        var exists = await _minioClient.BucketExistsAsync(
-            new BucketExistsArgs().WithBucket(bucket), cancellationToken);
+        var slug = NormalizeSlug(tenantSlug);
+        await EnsureSharedBucketAsync(cancellationToken);
 
-        if (!exists)
+        foreach (var folder in new[]
+                 {
+                     AppConstants.StorageFolders.Logo,
+                     AppConstants.StorageFolders.Avatars,
+                     AppConstants.StorageFolders.Documents,
+                     AppConstants.StorageFolders.Assignments,
+                     AppConstants.StorageFolders.Reports
+                 })
         {
-            await _minioClient.MakeBucketAsync(
-                new MakeBucketArgs().WithBucket(bucket), cancellationToken);
-
-            // Private by default — no anonymous policy (presigned URLs only)
-            // Create folder placeholders
-            foreach (var folder in new[]
-                     {
-                         AppConstants.StorageFolders.Logo,
-                         AppConstants.StorageFolders.Avatars,
-                         AppConstants.StorageFolders.Documents,
-                         AppConstants.StorageFolders.Assignments,
-                         AppConstants.StorageFolders.Reports
-                     })
-            {
-                await PutPlaceholderAsync(bucket, $"{folder}/.keep", cancellationToken);
-            }
-
-            _logger.LogInformation("Created MinIO bucket {Bucket} for tenant {Slug}", bucket, tenantSlug);
+            await PutPlaceholderAsync(SharedBucket, $"{slug}/{folder}/.keep", cancellationToken);
         }
+
+        _logger.LogInformation(
+            "Ensured school folder {Prefix}/ in shared bucket {Bucket}",
+            slug, SharedBucket);
     }
 
     public async Task<string> UploadFileAsync(
@@ -87,21 +85,22 @@ public class StorageService : IStorageService
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        await EnsureBucketAsync(tenantSlug, cancellationToken);
+        var slug = NormalizeSlug(tenantSlug);
+        await EnsureBucketAsync(slug, cancellationToken);
 
         var safeName = Path.GetFileName(fileName);
-        var objectKey = $"{folder.Trim('/')}/{Guid.NewGuid():N}-{safeName}";
+        var relativeKey = $"{folder.Trim('/')}/{Guid.NewGuid():N}-{safeName}";
+        var objectKey = TenantObjectKey(slug, relativeKey);
 
         await _minioClient.PutObjectAsync(new PutObjectArgs()
-            .WithBucket(bucket)
+            .WithBucket(SharedBucket)
             .WithObject(objectKey)
             .WithStreamData(fileStream)
             .WithObjectSize(fileStream.Length)
             .WithContentType(contentType), cancellationToken);
 
-        _logger.LogInformation("Uploaded {ObjectKey} to bucket {Bucket}", objectKey, bucket);
-        return $"{bucket}/{objectKey}";
+        _logger.LogInformation("Uploaded {ObjectKey} to bucket {Bucket}", objectKey, SharedBucket);
+        return StorageLocator(objectKey);
     }
 
     public async Task<string> UploadObjectAsync(
@@ -111,19 +110,19 @@ public class StorageService : IStorageService
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        await EnsureBucketAsync(tenantSlug, cancellationToken);
+        var slug = NormalizeSlug(tenantSlug);
+        await EnsureBucketAsync(slug, cancellationToken);
 
-        var key = objectKey.Trim().TrimStart('/');
+        var key = TenantObjectKey(slug, objectKey);
         await _minioClient.PutObjectAsync(new PutObjectArgs()
-            .WithBucket(bucket)
+            .WithBucket(SharedBucket)
             .WithObject(key)
             .WithStreamData(fileStream)
             .WithObjectSize(fileStream.Length)
             .WithContentType(contentType), cancellationToken);
 
-        _logger.LogInformation("Uploaded {ObjectKey} to bucket {Bucket}", key, bucket);
-        return $"{bucket}/{key}";
+        _logger.LogInformation("Uploaded {ObjectKey} to bucket {Bucket}", key, SharedBucket);
+        return StorageLocator(key);
     }
 
     public async Task<string> GetPresignedUrlAsync(
@@ -131,11 +130,7 @@ public class StorageService : IStorageService
         string objectKey,
         CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        var key = objectKey.StartsWith($"{bucket}/")
-            ? objectKey[(bucket.Length + 1)..]
-            : objectKey;
-
+        var (bucket, key) = ResolveObjectLocation(tenantSlug, objectKey);
         return await _minioClient.PresignedGetObjectAsync(new PresignedGetObjectArgs()
             .WithBucket(bucket)
             .WithObject(key)
@@ -147,11 +142,7 @@ public class StorageService : IStorageService
         string objectKey,
         CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        var key = objectKey.StartsWith($"{bucket}/")
-            ? objectKey[(bucket.Length + 1)..]
-            : objectKey;
-
+        var (bucket, key) = ResolveObjectLocation(tenantSlug, objectKey);
         await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
             .WithBucket(bucket)
             .WithObject(key), cancellationToken);
@@ -161,53 +152,159 @@ public class StorageService : IStorageService
 
     public async Task DeleteBucketAsync(string tenantSlug, CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        var exists = await _minioClient.BucketExistsAsync(
-            new BucketExistsArgs().WithBucket(bucket), cancellationToken);
-        if (!exists)
-            return;
+        var slug = NormalizeSlug(tenantSlug);
+        var prefix = $"{slug}/";
 
+        // Remove school folder from shared bucket
+        await EnsureSharedBucketAsync(cancellationToken);
         await foreach (var item in _minioClient.ListObjectsEnumAsync(
-                           new ListObjectsArgs().WithBucket(bucket).WithRecursive(true),
+                           new ListObjectsArgs()
+                               .WithBucket(SharedBucket)
+                               .WithPrefix(prefix)
+                               .WithRecursive(true),
                            cancellationToken))
         {
             await _minioClient.RemoveObjectAsync(
-                new RemoveObjectArgs().WithBucket(bucket).WithObject(item.Key),
+                new RemoveObjectArgs().WithBucket(SharedBucket).WithObject(item.Key),
+                cancellationToken);
+        }
+
+        _logger.LogInformation(
+            "Deleted school folder {Prefix} from shared bucket {Bucket}",
+            prefix, SharedBucket);
+
+        // Also clean up legacy per-school bucket if it still exists
+        var legacyBucket = $"{AppConstants.LegacyBucketPrefix}{slug}";
+        var legacyExists = await _minioClient.BucketExistsAsync(
+            new BucketExistsArgs().WithBucket(legacyBucket), cancellationToken);
+        if (!legacyExists)
+            return;
+
+        await foreach (var item in _minioClient.ListObjectsEnumAsync(
+                           new ListObjectsArgs().WithBucket(legacyBucket).WithRecursive(true),
+                           cancellationToken))
+        {
+            await _minioClient.RemoveObjectAsync(
+                new RemoveObjectArgs().WithBucket(legacyBucket).WithObject(item.Key),
                 cancellationToken);
         }
 
         await _minioClient.RemoveBucketAsync(
-            new RemoveBucketArgs().WithBucket(bucket), cancellationToken);
-
-        _logger.LogInformation("Deleted MinIO bucket {Bucket}", bucket);
+            new RemoveBucketArgs().WithBucket(legacyBucket), cancellationToken);
+        _logger.LogInformation("Deleted legacy MinIO bucket {Bucket}", legacyBucket);
     }
 
     public async Task<long> GetBucketSizeBytesAsync(string tenantSlug, CancellationToken cancellationToken = default)
     {
-        var bucket = GetBucketName(tenantSlug);
-        var exists = await _minioClient.BucketExistsAsync(
-            new BucketExistsArgs().WithBucket(bucket), cancellationToken);
-        if (!exists)
-            return 0;
-
+        var slug = NormalizeSlug(tenantSlug);
         long total = 0;
-        await foreach (var item in _minioClient.ListObjectsEnumAsync(
-                           new ListObjectsArgs().WithBucket(bucket).WithRecursive(true),
-                           cancellationToken))
+
+        var sharedExists = await _minioClient.BucketExistsAsync(
+            new BucketExistsArgs().WithBucket(SharedBucket), cancellationToken);
+        if (sharedExists)
         {
-            total += Convert.ToInt64(item.Size);
+            await foreach (var item in _minioClient.ListObjectsEnumAsync(
+                               new ListObjectsArgs()
+                                   .WithBucket(SharedBucket)
+                                   .WithPrefix($"{slug}/")
+                                   .WithRecursive(true),
+                               cancellationToken))
+            {
+                total += Convert.ToInt64(item.Size);
+            }
+        }
+
+        var legacyBucket = $"{AppConstants.LegacyBucketPrefix}{slug}";
+        var legacyExists = await _minioClient.BucketExistsAsync(
+            new BucketExistsArgs().WithBucket(legacyBucket), cancellationToken);
+        if (legacyExists)
+        {
+            await foreach (var item in _minioClient.ListObjectsEnumAsync(
+                               new ListObjectsArgs().WithBucket(legacyBucket).WithRecursive(true),
+                               cancellationToken))
+            {
+                total += Convert.ToInt64(item.Size);
+            }
         }
 
         return total;
     }
 
-    private static string GetBucketName(string tenantSlug)
+    private async Task EnsureSharedBucketAsync(CancellationToken cancellationToken)
+    {
+        var bucket = SharedBucket;
+        var exists = await _minioClient.BucketExistsAsync(
+            new BucketExistsArgs().WithBucket(bucket), cancellationToken);
+        if (exists)
+            return;
+
+        await _minioClient.MakeBucketAsync(
+            new MakeBucketArgs().WithBucket(bucket), cancellationToken);
+        _logger.LogInformation("Created shared MinIO bucket {Bucket}", bucket);
+    }
+
+    /// <summary>
+    /// Resolves (bucket, objectKey) for reads/deletes.
+    /// Supports shared-bucket locators, relative keys, and legacy school-{slug} buckets.
+    /// </summary>
+    private (string Bucket, string Key) ResolveObjectLocation(string tenantSlug, string objectKey)
+    {
+        var slug = NormalizeSlug(tenantSlug);
+        var raw = objectKey.Trim().TrimStart('/');
+        if (string.IsNullOrWhiteSpace(raw))
+            throw new ArgumentException("Object key is required.", nameof(objectKey));
+
+        var shared = SharedBucket;
+        var legacyBucket = $"{AppConstants.LegacyBucketPrefix}{slug}";
+
+        // school-mgmt/riverside/students/...
+        if (raw.StartsWith($"{shared}/", StringComparison.OrdinalIgnoreCase))
+        {
+            var key = raw[(shared.Length + 1)..];
+            return (shared, EnsureTenantPrefix(slug, key));
+        }
+
+        // Legacy stored locator: school-riverside/students/...
+        if (raw.StartsWith($"{legacyBucket}/", StringComparison.OrdinalIgnoreCase))
+        {
+            return (legacyBucket, raw[(legacyBucket.Length + 1)..]);
+        }
+
+        // Already tenant-prefixed: riverside/students/...
+        if (raw.StartsWith($"{slug}/", StringComparison.OrdinalIgnoreCase))
+            return (shared, raw);
+
+        // Relative: students/... → riverside/students/...
+        return (shared, $"{slug}/{raw}");
+    }
+
+    private static string TenantObjectKey(string slug, string objectKey)
+    {
+        var key = objectKey.Trim().TrimStart('/');
+        // Avoid double-prefix if caller already passed slug/...
+        if (key.StartsWith($"{slug}/", StringComparison.OrdinalIgnoreCase))
+            return key;
+        // Strip accidental shared-bucket prefix from callers
+        return $"{slug}/{key}";
+    }
+
+    private static string EnsureTenantPrefix(string slug, string key)
+    {
+        var k = key.Trim().TrimStart('/');
+        if (k.StartsWith($"{slug}/", StringComparison.OrdinalIgnoreCase))
+            return k;
+        return $"{slug}/{k}";
+    }
+
+    private string StorageLocator(string objectKeyInsideSharedBucket)
+        => $"{SharedBucket}/{objectKeyInsideSharedBucket.TrimStart('/')}";
+
+    private static string NormalizeSlug(string tenantSlug)
     {
         var slug = tenantSlug.ToLowerInvariant().Trim();
         if (!System.Text.RegularExpressions.Regex.IsMatch(slug, @"^[a-z0-9]+(?:-[a-z0-9]+)*$"))
-            throw new ArgumentException($"Invalid tenant slug for bucket: {tenantSlug}");
-
-        return $"{AppConstants.BucketPrefix}{slug}";
+            throw new ArgumentException($"Invalid tenant slug for storage: {tenantSlug}");
+        return slug;
     }
 
     private async Task PutPlaceholderAsync(string bucket, string objectKey, CancellationToken cancellationToken)

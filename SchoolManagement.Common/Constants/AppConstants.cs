@@ -4,7 +4,10 @@ public static class AppConstants
 {
     public const string TenantHeaderName = "X-Tenant-ID";
     public const string SchemaPrefix = "tenant_";
-    public const string BucketPrefix = "school-";
+    /// <summary>Legacy per-school MinIO bucket prefix (school-{slug}). Kept for reading old object keys.</summary>
+    public const string LegacyBucketPrefix = "school-";
+    /// <summary>Default shared MinIO bucket; school files live under {slug}/ folders.</summary>
+    public const string DefaultSharedBucket = "school-mgmt";
     public const string DefaultSubscriptionPlan = "basic";
     public const int DefaultMaxUsers = 100;
     /// <summary>Matches live ahskbera bcrypt cost ($2y$10$). New hashes use work factor 12.</summary>

@@ -48,6 +48,7 @@ services:
       - MinIO__Endpoint=minio:9000
       - MinIO__AccessKey=${MINIO_ROOT_USER:-minioadmin}
       - MinIO__SecretKey=${MINIO_ROOT_PASSWORD:-minioadmin123}
+      - MinIO__BucketName=${MINIO_BUCKET:-school-mgmt}
       - JwtSettings__SecretKey=your-super-secret-key-minimum-32-characters-long
     ports:
       - "5000:8080"

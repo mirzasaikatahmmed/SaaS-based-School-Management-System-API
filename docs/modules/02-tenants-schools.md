@@ -2,7 +2,7 @@
 
 **Controllers:** `TenantController` (`/api/tenants`), `SchoolController` (`/api/schools`)
 
-Provisions a school as a SaaS tenant: PostgreSQL schema `tenant_{slug}` + MinIO bucket `school-{slug}` + seeded school admin.
+Provisions a school as a SaaS tenant: PostgreSQL schema `tenant_{slug}` + MinIO folder `{bucket}/{slug}/` (shared bucket) + seeded school admin.
 
 ## Tenants — `/api/tenants`
 
@@ -31,7 +31,7 @@ Provisions a school as a SaaS tenant: PostgreSQL schema `tenant_{slug}` + MinIO 
 ## Workflow
 
 1. Super Admin creates school/tenant.
-2. Platform runs DDL provisioner + creates MinIO bucket.
+2. Platform runs DDL provisioner + ensures shared MinIO bucket and school folder.
 3. School admin credentials are seeded; admin logs in with `X-Tenant-ID`.
 
 ## Notes

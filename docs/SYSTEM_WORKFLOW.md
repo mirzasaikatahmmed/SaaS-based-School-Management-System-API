@@ -19,7 +19,7 @@ flowchart TB
 
   subgraph School["School tenant"]
     SCH[tenant_slug schema]
-    MINIO[MinIO school-slug]
+    MINIO[MinIO school-mgmt/slug]
     USERS[Users + Roles]
     STU[Students]
     GUARD[Guardians / Parents]
@@ -40,7 +40,7 @@ flowchart TB
 |-------|-------------------|
 | Platform | Super Admin auth, create/list schools & tenants, logos, settings, stats |
 | Tenant data | Users, roles, classes, sections, categories, students, guardians, employees, departments, designations, online applications, import batches |
-| Storage | Per-school MinIO bucket; student/guardian/employee/import objects + presigned URLs |
+| Storage | Shared MinIO bucket with per-school folders (`{bucket}/{slug}/…`); student/guardian/employee/import objects + presigned URLs |
 | Student lifecycle | Admission · Online admit · CSV import · List · Deactivate · Login deactivate |
 | Parent lifecycle | Auto from admission · Standalone add · List · Login deactivate |
 | Employee lifecycle | Departments · Designations · Add/import staff · Role-tab list · Login deactivate |
@@ -90,7 +90,7 @@ sequenceDiagram
 flowchart LR
   A[Super Admin] -->|POST /api/schools or /api/tenants| B[Create school]
   B --> C[Create tenant_slug schema]
-  B --> D[Create school-slug bucket]
+  B --> D[Ensure school folder in shared MinIO bucket]
   B --> E[Seed roles + school admin]
   E --> F[Admin logs in with X-Tenant-ID]
   F --> G[Configure categories / lookups]
@@ -101,7 +101,7 @@ flowchart LR
 | Artifact | Name pattern |
 |----------|----------------|
 | DB schema | `tenant_{slug}` |
-| MinIO bucket | `school-{slug}` |
+| MinIO folder | `{BucketName}/{slug}/` (default bucket `school-mgmt`) |
 | Header for school APIs | `X-Tenant-ID: {slug}` |
 
 School Admin (and later teachers/parents/students) always send **Bearer token + X-Tenant-ID**.

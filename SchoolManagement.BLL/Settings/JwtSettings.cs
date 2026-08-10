@@ -15,6 +15,8 @@ public class MinioSettings
     public string AccessKey { get; set; } = "minioadmin";
     public string SecretKey { get; set; } = "minioadmin123";
     public bool UseSSL { get; set; } = false;
+    /// <summary>Single shared bucket; each school uses a folder prefix {slug}/.</summary>
+    public string BucketName { get; set; } = "school-mgmt";
 }
 
 public class SuperAdminSettings

@@ -1,6 +1,6 @@
 # SaaS School Management System
 
-Multi-tenant school management API built with **.NET 10**. Each school gets an isolated PostgreSQL schema (`tenant_{slug}`) and MinIO bucket (`school-{slug}`).
+Multi-tenant school management API built with **.NET 10**. Each school gets an isolated PostgreSQL schema (`tenant_{slug}`) and files under a **shared MinIO bucket** folder (`{bucket}/{slug}/…`).
 
 **Docker image:** [`mirzasaikatahmmed/saas-based-school-management-system-api`](https://hub.docker.com/r/mirzasaikatahmmed/saas-based-school-management-system-api)
 
@@ -10,7 +10,7 @@ Multi-tenant school management API built with **.NET 10**. Each school gets an i
 
 | Area | Capabilities |
 |------|----------------|
-| **Auth & tenancy** | JWT login/refresh, schema-per-tenant, per-school MinIO buckets |
+| **Auth & tenancy** | JWT login/refresh, schema-per-tenant, shared MinIO bucket with per-school folders |
 | **Schools** | Super Admin provisioning, branding, settings, stats, export |
 | **Admission** | Create/update students & guardians; class/section/category lookups |
 | **Online admission** | Public apply/track; admin approve/decline/payment/export |
@@ -52,7 +52,7 @@ Multi-tenant school management API built with **.NET 10**. Each school gets an i
 | Data | `SchoolManagement.DAL` | EF Core, repositories, unit of work, schema provisioner |
 | Shared | `SchoolManagement.Common` | Constants, wrappers |
 
-**Multi-tenancy:** school registry in `public.tenants`; tenant data in `tenant_{slug}`; files in `school-{slug}`. Send `X-Tenant-ID: {slug}` on school-scoped requests.
+**Multi-tenancy:** school registry in `public.tenants`; tenant data in `tenant_{slug}`; files in shared MinIO bucket `school-mgmt/{slug}/…`. Send `X-Tenant-ID: {slug}` on school-scoped requests.
 
 Column naming follows the live ahskbera dump (`password`, `mobileno`, `photo`, `active`, role `prefix`). See [`docs/AHSKBERA_SCHEMA_MAPPING.md`](docs/AHSKBERA_SCHEMA_MAPPING.md).
 

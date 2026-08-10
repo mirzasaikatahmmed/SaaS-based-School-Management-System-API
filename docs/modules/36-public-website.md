@@ -5,7 +5,7 @@ Anonymous APIs for the school public site (ahskbera.edu.bd–style pages).
 **Status:** Public read endpoints implemented (`PublicWebsiteController`). Admin CMS CRUD can be added later; seed/edit content via DB or forthcoming `/api/website/*` admin routes.
 
 **Controller:** `PublicWebsiteController` · **Route:** `/api/public` · **Auth:** `AllowAnonymous` + **required** `X-Tenant-ID`  
-**Isolation:** One PostgreSQL schema + MinIO bucket per school — CMS/results/students never cross tenants.
+**Isolation:** One PostgreSQL schema per school; files in shared MinIO bucket under `{slug}/` — CMS/results/students never cross tenants.
 
 **Headers:**
 
@@ -533,7 +533,7 @@ Active students only. Public fields: photo, name, class, section, register no, r
 
 ## Auth / tenancy rules
 
-**Each school has fully separate data.** Public website CMS, students, results, gallery, contact messages, and files live only in that school’s PostgreSQL schema (`tenant_{slug}`) and MinIO bucket (`school-{slug}`). There is no shared website table across tenants.
+**Each school has fully separate data.** Public website CMS, students, results, gallery, contact messages, and files live only in that school’s PostgreSQL schema (`tenant_{slug}`) and MinIO folder (`{bucket}/{slug}/`). There is no shared website table across tenants.
 
 1. Resolve tenant from `X-Tenant-ID` (school slug). Missing → `400`. Unknown slug → `404`. Inactive → `403`.
 2. `PublicWebsiteController` requires a resolved tenant (`[RequireTenant]`); all queries use that schema only.
@@ -543,7 +543,7 @@ Active students only. Public fields: photo, name, class, section, register no, r
 6. Updates from admin panel will use authenticated routes under `/api/website/…` (CMS) when shipped; public GETs remain stable.
 7. Empty CMS tables still return usable defaults for menu/footer; speeches/notices return empty or 404 as appropriate.
 8. Teachers / office staff are read from that tenant’s `employees` only; bank fields are never exposed.
-9. Media URLs are presigned against the tenant’s own bucket — never another school’s.
+9. Media URLs are presigned against the school’s own folder in the shared bucket — never another school’s.
 
 ---
 

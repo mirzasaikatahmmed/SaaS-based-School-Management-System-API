@@ -70,7 +70,7 @@ public class TenantService : ITenantService
         // 1. Create PostgreSQL schema + tables
         await _schemaProvisioner.ProvisionAsync(schemaName, cancellationToken);
 
-        // 2. Create MinIO bucket
+        // 2. Ensure school folder in shared MinIO bucket
         await _storageService.EnsureBucketAsync(slug, cancellationToken);
 
         // 3. Persist tenant registry record
