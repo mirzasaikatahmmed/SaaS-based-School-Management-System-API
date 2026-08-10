@@ -12,7 +12,9 @@ namespace SchoolManagement.API.Controllers;
 [Route("api/public")]
 [AllowAnonymous]
 [RequireTenant]
-public class PublicWebsiteController(IPublicWebsiteService service) : ControllerBase
+public class PublicWebsiteController(
+    IPublicWebsiteService service,
+    ISscBoardResultService sscBoardResults) : ControllerBase
 {
     [HttpGet("site/settings")]
     public async Task<IActionResult> Settings(CancellationToken ct)
@@ -134,6 +136,30 @@ public class PublicWebsiteController(IPublicWebsiteService service) : Controller
         => Ok(ApiResponse<ReportCardDto>.Ok(
             await service.SearchOnlineResultAsync(registerNo, examId, ct),
             "Result retrieved"));
+
+    /// <summary>Education boards for SSC board result lookup (eduboardresults.gov.bd).</summary>
+    [HttpGet("results/ssc-board/boards")]
+    public async Task<IActionResult> SscBoardList(CancellationToken ct)
+        => Ok(ApiResponse<IReadOnlyList<SscBoardOptionDto>>.Ok(
+            await sscBoardResults.GetBoardsAsync(ct),
+            "Boards retrieved"));
+
+    /// <summary>Generate captcha for SSC board result search. Optional autoSolve attempts OCR.</summary>
+    [HttpGet("results/ssc-board/captcha")]
+    public async Task<IActionResult> SscBoardCaptcha([FromQuery] bool autoSolve = false, CancellationToken ct = default)
+        => Ok(ApiResponse<SscBoardCaptchaDto>.Ok(
+            await sscBoardResults.GetCaptchaAsync(autoSolve, ct),
+            "Captcha generated"));
+
+    /// <summary>
+    /// Search SSC / board result by roll, registration, board, year + captcha
+    /// (or autoSolve=true to OCR captcha server-side when ddddocr is available).
+    /// </summary>
+    [HttpPost("results/ssc-board/search")]
+    public async Task<IActionResult> SscBoardSearch([FromBody] SscBoardSearchRequestDto body, CancellationToken ct)
+        => Ok(ApiResponse<SscBoardResultDto>.Ok(
+            await sscBoardResults.SearchAsync(body, ct),
+            "SSC board result retrieved"));
 
     [HttpGet("students/statistics")]
     public async Task<IActionResult> StudentStatistics([FromQuery] int? academicYear, CancellationToken ct)

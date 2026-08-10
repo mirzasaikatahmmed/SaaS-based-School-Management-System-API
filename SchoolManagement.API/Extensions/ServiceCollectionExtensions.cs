@@ -99,6 +99,18 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEventTypeService, EventTypeService>();
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IPublicWebsiteService, PublicWebsiteService>();
+        services.AddScoped<ISscBoardResultService, SscBoardResultService>();
+        services.AddHttpClient(SscBoardResultService.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://eduboardresults.gov.bd/");
+            client.Timeout = TimeSpan.FromSeconds(45);
+            client.DefaultRequestHeaders.TryAddWithoutValidation(
+                "User-Agent",
+                "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, text/plain, */*");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Origin", "https://eduboardresults.gov.bd");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", "https://eduboardresults.gov.bd/");
+        });
         services.AddScoped<IFeesTypeService, FeesTypeService>();
         services.AddScoped<IFeesGroupService, FeesGroupService>();
         services.AddScoped<IFeesAllocationService, FeesAllocationService>();

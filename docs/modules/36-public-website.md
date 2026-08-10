@@ -412,6 +412,9 @@ CMS tables: `website_result_analytics`, `website_published_results`.
 | GET | `/ssc` | `?examType=ssc\|vocational` | Published result links (“Enter” list) |
 | GET | `/exams` | — | Exams with **result published** (dropdown for online search) |
 | GET | `/search` | `?registerNo=&examId=` | Online student result by register no + exam |
+| GET | `/ssc-board/boards` | — | Education boards (proxy of eduboardresults.gov.bd) |
+| GET | `/ssc-board/captcha` | `?autoSolve=` | Captcha image + hash + timestamp (optional OCR fill) |
+| POST | `/ssc-board/search` | body | Live SSC board result by roll, reg, board, year + captcha |
 
 ### Online result search
 
@@ -434,6 +437,31 @@ Only exams with `IsResultPublished = true` appear. Response is a report-card sha
   "position": 3
 }
 ```
+
+### SSC board result search (live — same flow as `fetch_ssc_results.py`)
+
+Proxies `https://eduboardresults.gov.bd` (captcha + `getStudentResult`). Requires `X-Tenant-ID` like other public routes.
+
+1. `GET /api/public/results/ssc-board/boards`
+2. `GET /api/public/results/ssc-board/captcha` → show image; user enters text **or** set `autoSolve=true` / search with `"autoSolve": true`
+3. `POST /api/public/results/ssc-board/search`
+
+```json
+{
+  "rollNo": "142639",
+  "regNo": "2312732939",
+  "board": "12",
+  "passYear": 2026,
+  "captchaText": "ab12",
+  "hash": "…",
+  "timestamp": 1710000000,
+  "autoSolve": false
+}
+```
+
+`board` accepts board id (`12`) or name (`RAJSHAHI`). With `"autoSolve": true`, captcha fields may be omitted; the API fetches captcha and attempts OCR via Python `ddddocr` when available (`SscBoardResults:EnableAutoCaptcha`). On captcha failure the response includes a fresh `captcha` object for manual retry.
+
+Frontend page: `/ssc-result-search`.
 
 ### Analytics `data`
 
@@ -550,6 +578,7 @@ Active students only. Public fields: photo, name, class, section, register no, r
 | `/notices` | `GET /api/public/notices` |
 | `/gallery` | `GET /api/public/gallery` |
 | `/ssc-exam-results` | `GET /api/public/results/ssc` |
+| `/ssc-result-search` | `GET …/ssc-board/boards` · `GET …/ssc-board/captcha` · `POST …/ssc-board/search` |
 | `/online-result` | `GET /api/public/results/exams` · `GET /api/public/results/search` |
 | `/result-analytics` | `GET /api/public/results/analytics` |
 | `/student-statistics` | `GET /api/public/students/statistics` |
