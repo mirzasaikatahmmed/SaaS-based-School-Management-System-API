@@ -1,3 +1,4 @@
+using SchoolManagement.BLL.DTOs.Reports;
 using SchoolManagement.BLL.DTOs.Website;
 
 namespace SchoolManagement.BLL.Interfaces;
@@ -30,6 +31,8 @@ public interface IPublicWebsiteService
     Task<IReadOnlyList<OnlineClassGroupDto>> GetOnlineClassesAsync(string? className, CancellationToken ct = default);
     Task<ResultAnalyticsPageDto> GetResultAnalyticsAsync(CancellationToken ct = default);
     Task<IReadOnlyList<PublishedResultItemDto>> GetPublishedResultsAsync(string? examType, CancellationToken ct = default);
+    Task<IReadOnlyList<OnlineExamOptionDto>> GetOnlineResultExamsAsync(CancellationToken ct = default);
+    Task<ReportCardDto> SearchOnlineResultAsync(string registerNo, Guid examId, CancellationToken ct = default);
     Task<StudentStatisticsDto> GetStudentStatisticsAsync(int? academicYear, CancellationToken ct = default);
     Task<PublicStudentListDto> GetPublicStudentsAsync(
         Guid? classId, Guid? sectionId, string? className, string? sectionName,

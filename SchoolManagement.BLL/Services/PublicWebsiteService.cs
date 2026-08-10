@@ -1,4 +1,5 @@
 using System.Text.Json;
+using SchoolManagement.BLL.DTOs.Reports;
 using SchoolManagement.BLL.DTOs.Website;
 using SchoolManagement.BLL.Exceptions;
 using SchoolManagement.BLL.Interfaces;
@@ -14,7 +15,8 @@ public class PublicWebsiteService(
     IUnitOfWork uow,
     ITenantContext tenant,
     ITenantSchemaProvisioner provisioner,
-    IStorageService storage) : IPublicWebsiteService
+    IStorageService storage,
+    IExaminationReportService examinationReports) : IPublicWebsiteService
 {
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
@@ -586,6 +588,25 @@ public class PublicWebsiteService(
             });
         }
         return list;
+    }
+
+    public async Task<IReadOnlyList<OnlineExamOptionDto>> GetOnlineResultExamsAsync(CancellationToken ct = default)
+    {
+        await Ready(ct);
+        var exams = await uow.Exams.GetResultPublishedAsync(ct);
+        return exams.Select(e => new OnlineExamOptionDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            ExamType = e.ExamType,
+            TermName = e.ExamTerm?.Name
+        }).ToList();
+    }
+
+    public async Task<ReportCardDto> SearchOnlineResultAsync(string registerNo, Guid examId, CancellationToken ct = default)
+    {
+        await Ready(ct);
+        return await examinationReports.GetOnlineStudentResultAsync(registerNo, examId, ct);
     }
 
     public async Task<StudentStatisticsDto> GetStudentStatisticsAsync(int? academicYear, CancellationToken ct = default)

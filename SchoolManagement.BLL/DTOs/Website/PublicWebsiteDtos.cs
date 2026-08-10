@@ -351,6 +351,22 @@ public class PublishedResultItemDto
     public string? FileUrl { get; set; }
 }
 
+/// <summary>Dropdown option for online result search (exams with IsResultPublished).</summary>
+public class OnlineExamOptionDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? ExamType { get; set; }
+    public string? TermName { get; set; }
+}
+
+/// <summary>Online result lookup request (register no + exam).</summary>
+public class OnlineResultSearchRequestDto
+{
+    public string RegisterNo { get; set; } = string.Empty;
+    public Guid ExamId { get; set; }
+}
+
 public class StudentStatRowDto
 {
     public string ClassName { get; set; } = string.Empty;

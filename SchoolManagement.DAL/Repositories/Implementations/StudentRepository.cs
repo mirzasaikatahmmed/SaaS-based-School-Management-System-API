@@ -51,8 +51,12 @@ public class StudentRepository : IStudentRepository
 
     public async Task<Student?> GetByRegisterNoAsync(string registerNo, CancellationToken cancellationToken = default)
     {
+        var key = registerNo.Trim().ToLower();
         return await _context.Students
-            .FirstOrDefaultAsync(s => s.RegisterNo == registerNo, cancellationToken);
+            .Include(s => s.Class)
+            .Include(s => s.Section)
+            .Include(s => s.Guardians)
+            .FirstOrDefaultAsync(s => s.RegisterNo.ToLower() == key, cancellationToken);
     }
 
     public async Task<(IReadOnlyList<Student> Items, int TotalCount)> SearchAsync(

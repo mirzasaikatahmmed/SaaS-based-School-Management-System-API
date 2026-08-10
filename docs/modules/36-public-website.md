@@ -45,6 +45,7 @@ Response wrapper: `ApiResponse<T>`.
 | Photo gallery | `GET /api/public/gallery` · `GET /api/public/gallery/{albumId}` |
 | Golden Jubilee | `GET /api/public/academic/pages/golden-jubilee` |
 | SSC exam results | `GET /api/public/results/ssc` |
+| Online result search | `GET /api/public/results/exams` · `GET /api/public/results/search?registerNo=&examId=` |
 | Result analytics | `GET /api/public/results/analytics` |
 | Student statistics | `GET /api/public/students/statistics` |
 | Student list (by class/section) | `GET /api/public/students?className=&sectionName=` |
@@ -409,6 +410,30 @@ CMS tables: `website_result_analytics`, `website_published_results`.
 |--------|------|-------|-------------|
 | GET | `/analytics` | — | SSC + SSC Vocational pass/fail and GPA distribution by year |
 | GET | `/ssc` | `?examType=ssc\|vocational` | Published result links (“Enter” list) |
+| GET | `/exams` | — | Exams with **result published** (dropdown for online search) |
+| GET | `/search` | `?registerNo=&examId=` | Online student result by register no + exam |
+
+### Online result search
+
+1. Load exams: `GET /api/public/results/exams`
+2. User enters **register number**, selects **exam**, searches
+3. `GET /api/public/results/search?registerNo=REG001&examId={guid}`
+
+Only exams with `IsResultPublished = true` appear. Response is a report-card shaped payload (subjects, GPA, result, position). Missing student / unpublished exam → `404`.
+
+```json
+{
+  "studentName": "…",
+  "registerNo": "REG001",
+  "examName": "Half Yearly 2026",
+  "className": "Nine",
+  "sectionName": "A",
+  "subjects": [{ "subject": "Bangla", "obtainedMarks": 72, "fullMarks": 100, "grade": "A", "gradePoint": 4 }],
+  "gpa": 4.25,
+  "result": "PASS",
+  "position": 3
+}
+```
 
 ### Analytics `data`
 
@@ -525,6 +550,7 @@ Active students only. Public fields: photo, name, class, section, register no, r
 | `/notices` | `GET /api/public/notices` |
 | `/gallery` | `GET /api/public/gallery` |
 | `/ssc-exam-results` | `GET /api/public/results/ssc` |
+| `/online-result` | `GET /api/public/results/exams` · `GET /api/public/results/search` |
 | `/result-analytics` | `GET /api/public/results/analytics` |
 | `/student-statistics` | `GET /api/public/students/statistics` |
 | `/student-list` | `GET /api/public/students?className=&sectionName=` |

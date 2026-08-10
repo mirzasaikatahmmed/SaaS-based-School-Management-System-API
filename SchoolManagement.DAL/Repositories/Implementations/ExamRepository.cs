@@ -15,6 +15,12 @@ public class ExamRepository(TenantDbContext context) : IExamRepository
     public async Task<IReadOnlyList<Exam>> GetAllAsync(CancellationToken cancellationToken = default)
         => await WithIncludes().OrderByDescending(e => e.CreatedAt).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Exam>> GetResultPublishedAsync(CancellationToken cancellationToken = default)
+        => await WithIncludes()
+            .Where(e => e.IsActive && e.IsResultPublished)
+            .OrderByDescending(e => e.CreatedAt)
+            .ToListAsync(cancellationToken);
+
     public async Task<Exam?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await WithIncludes().FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 

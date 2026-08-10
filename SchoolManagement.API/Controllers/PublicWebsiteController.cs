@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagement.API.Filters;
+using SchoolManagement.BLL.DTOs.Reports;
 using SchoolManagement.BLL.DTOs.Website;
 using SchoolManagement.BLL.Interfaces;
 using SchoolManagement.Common.Wrappers;
@@ -118,6 +119,21 @@ public class PublicWebsiteController(IPublicWebsiteService service) : Controller
     [HttpGet("results/ssc")]
     public async Task<IActionResult> PublishedResults([FromQuery] string? examType, CancellationToken ct)
         => Ok(ApiResponse<IReadOnlyList<PublishedResultItemDto>>.Ok(await service.GetPublishedResultsAsync(examType, ct), "Published results retrieved"));
+
+    /// <summary>Exams available for online result search (IsResultPublished = true).</summary>
+    [HttpGet("results/exams")]
+    public async Task<IActionResult> OnlineResultExams(CancellationToken ct)
+        => Ok(ApiResponse<IReadOnlyList<OnlineExamOptionDto>>.Ok(await service.GetOnlineResultExamsAsync(ct), "Published exams retrieved"));
+
+    /// <summary>Search student result by register number + exam.</summary>
+    [HttpGet("results/search")]
+    public async Task<IActionResult> OnlineResultSearch(
+        [FromQuery] string registerNo,
+        [FromQuery] Guid examId,
+        CancellationToken ct)
+        => Ok(ApiResponse<ReportCardDto>.Ok(
+            await service.SearchOnlineResultAsync(registerNo, examId, ct),
+            "Result retrieved"));
 
     [HttpGet("students/statistics")]
     public async Task<IActionResult> StudentStatistics([FromQuery] int? academicYear, CancellationToken ct)

@@ -79,6 +79,43 @@ public class ExaminationReportService(
         return new ReportCardBatchDto { Cards = card };
     }
 
+    public async Task<ReportCardDto> GetOnlineStudentResultAsync(
+        string registerNo, Guid examId, CancellationToken ct = default)
+    {
+        await Ready(ct);
+
+        if (string.IsNullOrWhiteSpace(registerNo))
+            throw new AppException("Register number is required.", 400);
+
+        var exam = await uow.Exams.GetByIdAsync(examId, ct)
+            ?? throw new NotFoundException("Exam not found.");
+        if (!exam.IsActive || !exam.IsResultPublished)
+            throw new NotFoundException("Result is not published for this exam.");
+
+        var student = await uow.Students.GetByRegisterNoAsync(registerNo.Trim(), ct);
+        if (student is null || !student.IsActive)
+            throw new NotFoundException("No student found with this register number.");
+        if (!student.ClassId.HasValue || !student.SectionId.HasValue)
+            throw new AppException("Student class/section is not assigned.", 400);
+
+        var request = new GenerateExamCardsRequestDto
+        {
+            ExamId = examId,
+            ClassId = student.ClassId.Value,
+            SectionId = student.SectionId.Value,
+            AcademicYear = student.AcademicYear > 0 ? student.AcademicYear : DateTime.UtcNow.Year,
+            StudentIds = [student.Id],
+            PrintAttendance = false,
+            PrintGradeScale = true,
+            PrintDate = DateTime.UtcNow.Date
+        };
+
+        var cards = await BuildCardsForExamAsync(examId, request, ct);
+        var card = cards.FirstOrDefault()
+            ?? throw new NotFoundException("No mark entry found for this student in the selected exam.");
+        return card;
+    }
+
     public async Task<ReportCardBatchDto> GenerateProgressReportsAsync(
         GenerateExamCardsRequestDto request, CancellationToken ct = default)
     {
