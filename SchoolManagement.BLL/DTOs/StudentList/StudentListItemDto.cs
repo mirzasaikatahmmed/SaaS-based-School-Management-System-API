@@ -10,6 +10,8 @@ public class StudentListItemDto
     public string SectionName { get; set; } = string.Empty;
     public string RegisterNo { get; set; } = string.Empty;
     public string? Roll { get; set; }
+    public string? SscRoll { get; set; }
+    public string? SscRegistrationNo { get; set; }
     public string? DateOfBirth { get; set; }
     public int? Age { get; set; }
     public string? Gender { get; set; }

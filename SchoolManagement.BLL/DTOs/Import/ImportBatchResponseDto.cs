@@ -73,4 +73,6 @@ public class StudentImportRowDto
     public string? PreviousSchoolName { get; set; }
     public string? PreviousSchoolQualification { get; set; }
     public string? Remarks { get; set; }
+    public string? SscRoll { get; set; }
+    public string? SscRegistrationNo { get; set; }
 }

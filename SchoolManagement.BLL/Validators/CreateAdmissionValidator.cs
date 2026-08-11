@@ -41,6 +41,11 @@ public class CreateAdmissionValidator : AbstractValidator<CreateAdmissionDto>
 
         RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email));
 
+        // Optional — only meaningful for class 9/10; never required
+        RuleFor(x => x.SscRoll).MaximumLength(50).When(x => !string.IsNullOrWhiteSpace(x.SscRoll));
+        RuleFor(x => x.SscRegistrationNo).MaximumLength(50)
+            .When(x => !string.IsNullOrWhiteSpace(x.SscRegistrationNo));
+
         RuleFor(x => x.Username).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Password).NotEmpty().MinimumLength(8);
         RuleFor(x => x.RetypePassword)
@@ -108,5 +113,10 @@ public class UpdateAdmissionValidator : AbstractValidator<UpdateAdmissionDto>
             .Must(b => string.IsNullOrWhiteSpace(b) || BloodGroups.Contains(b))
             .When(x => x.BloodGroup is not null);
         RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email));
+
+        // Optional — only meaningful for class 9/10; never required
+        RuleFor(x => x.SscRoll).MaximumLength(50).When(x => !string.IsNullOrWhiteSpace(x.SscRoll));
+        RuleFor(x => x.SscRegistrationNo).MaximumLength(50)
+            .When(x => !string.IsNullOrWhiteSpace(x.SscRegistrationNo));
     }
 }

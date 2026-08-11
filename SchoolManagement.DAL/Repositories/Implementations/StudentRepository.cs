@@ -196,6 +196,18 @@ public class StudentRepository : IStudentRepository
         return await query.AnyAsync(cancellationToken);
     }
 
+    public async Task<bool> SscRollExistsAsync(
+        string sscRoll,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var roll = sscRoll.Trim();
+        var query = _context.Students.Where(s => s.SscRoll != null && s.SscRoll == roll);
+        if (excludeId.HasValue)
+            query = query.Where(s => s.Id != excludeId.Value);
+        return await query.AnyAsync(cancellationToken);
+    }
+
     public async Task<bool> RollExistsAsync(
         string roll,
         Guid classId,

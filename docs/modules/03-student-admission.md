@@ -4,6 +4,8 @@
 
 Creates students (and optional guardian user accounts) inside the current tenant. Atomic create: student user + student row + guardian(s).
 
+**SSC board numbers (optional):** For **class 9 or 10** only, you *may* set `sscRoll` and/or `sscRegistrationNo` on create/update. Both fields are optional — leave blank if not available yet. Other classes reject non-empty values; moving a student out of 9/10 clears them.
+
 ## Lookups — `/api/admission/lookup`
 
 | Method | Path | Description |

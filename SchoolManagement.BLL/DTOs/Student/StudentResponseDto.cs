@@ -7,6 +7,8 @@ public class StudentResponseDto
     public Guid UserId { get; set; }
     public string RegisterNo { get; set; } = string.Empty;
     public string? Roll { get; set; }
+    public string? SscRoll { get; set; }
+    public string? SscRegistrationNo { get; set; }
     public int AcademicYear { get; set; }
     public DateTime AdmissionDate { get; set; }
     public Guid? ClassId { get; set; }

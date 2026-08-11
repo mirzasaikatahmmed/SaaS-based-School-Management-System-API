@@ -3,6 +3,10 @@ namespace SchoolManagement.BLL.DTOs.Student;
 public class UpdateAdmissionDto
 {
     public string? Roll { get; set; }
+    /// <summary>Optional board SSC roll — only for class 9 / 10. Empty string clears. Omit to leave unchanged.</summary>
+    public string? SscRoll { get; set; }
+    /// <summary>Optional board SSC registration number — only for class 9 / 10. Empty string clears. Omit to leave unchanged.</summary>
+    public string? SscRegistrationNo { get; set; }
     public DateTime? AdmissionDate { get; set; }
     public Guid? ClassId { get; set; }
     public Guid? SectionId { get; set; }

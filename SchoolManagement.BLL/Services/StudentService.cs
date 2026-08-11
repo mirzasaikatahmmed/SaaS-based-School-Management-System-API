@@ -148,6 +148,10 @@ public class StudentService : IStudentService
         await ValidateAcademicLinksAsync(dto.ClassId, dto.SectionId, dto.CategoryId,
             dto.TransportRouteId, dto.HostelId, dto.RoomId, cancellationToken);
 
+        var clazz = await _unitOfWork.AdmissionLookups.GetClassByIdAsync(dto.ClassId, cancellationToken);
+        var (sscRoll, sscReg) = await ResolveSscBoardNumbersAsync(
+            clazz, dto.SscRoll, dto.SscRegistrationNo, excludeStudentId: null, cancellationToken);
+
         var studentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Student, cancellationToken)
             ?? throw new AppException("Student role is not seeded in this tenant.", 500);
         var parentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Parent, cancellationToken)
@@ -183,6 +187,8 @@ public class StudentService : IStudentService
                 UserId = studentUser.Id,
                 RegisterNo = dto.RegisterNo.Trim(),
                 Roll = dto.Roll?.Trim(),
+                SscRoll = sscRoll,
+                SscRegistrationNo = sscReg,
                 AcademicYear = dto.AcademicYear,
                 AdmissionDate = dto.AdmissionDate == default ? DateTime.UtcNow.Date : dto.AdmissionDate.Date,
                 ClassId = dto.ClassId,
@@ -548,6 +554,10 @@ public class StudentService : IStudentService
         if (await _unitOfWork.Users.EmailExistsAsync(email, cancellationToken))
             throw new ConflictException($"Email '{email}' already exists.");
 
+        var clazz = await _unitOfWork.AdmissionLookups.GetClassByIdAsync(classId, cancellationToken);
+        var (sscRoll, sscReg) = await ResolveSscBoardNumbersAsync(
+            clazz, row.SscRoll, row.SscRegistrationNo, excludeStudentId: null, cancellationToken);
+
         var studentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Student, cancellationToken)
             ?? throw new AppException("Student role is not seeded.", 500);
         var parentRole = await _unitOfWork.Users.GetRoleByNameAsync(AppConstants.Roles.Parent, cancellationToken)
@@ -580,6 +590,8 @@ public class StudentService : IStudentService
             UserId = studentUser.Id,
             RegisterNo = registerNo,
             Roll = row.Roll?.Trim(),
+            SscRoll = sscRoll,
+            SscRegistrationNo = sscReg,
             AcademicYear = academicYear,
             AdmissionDate = admissionDate.Date,
             ClassId = classId,
@@ -767,6 +779,32 @@ public class StudentService : IStudentService
         if (dto.PreviousSchoolName is not null) student.PreviousSchoolName = dto.PreviousSchoolName;
         if (dto.PreviousSchoolQualification is not null) student.PreviousSchoolQualification = dto.PreviousSchoolQualification;
         if (dto.Remarks is not null) student.Remarks = dto.Remarks;
+
+        // Resolve class after possible class change for SSC eligibility
+        ClassEntity? resolvedClass = null;
+        if (student.ClassId.HasValue)
+            resolvedClass = await _unitOfWork.AdmissionLookups.GetClassByIdAsync(student.ClassId.Value, cancellationToken);
+
+        if (dto.SscRoll is not null || dto.SscRegistrationNo is not null || dto.ClassId.HasValue)
+        {
+            var rollInput = dto.SscRoll is not null ? dto.SscRoll : student.SscRoll;
+            var regInput = dto.SscRegistrationNo is not null ? dto.SscRegistrationNo : student.SscRegistrationNo;
+            // When class changes away from 9/10, clear; when staying/entering 9–10, apply
+            if (!SscBoardNumberHelper.IsSscEligibleClass(resolvedClass))
+            {
+                if (!string.IsNullOrWhiteSpace(dto.SscRoll) || !string.IsNullOrWhiteSpace(dto.SscRegistrationNo))
+                    throw new AppException("SSC roll and registration number can only be set for class 9 or 10.", 400);
+                student.SscRoll = null;
+                student.SscRegistrationNo = null;
+            }
+            else if (dto.SscRoll is not null || dto.SscRegistrationNo is not null)
+            {
+                var (sscRoll, sscReg) = await ResolveSscBoardNumbersAsync(
+                    resolvedClass, rollInput, regInput, student.Id, cancellationToken);
+                if (dto.SscRoll is not null) student.SscRoll = sscRoll;
+                if (dto.SscRegistrationNo is not null) student.SscRegistrationNo = sscReg;
+            }
+        }
 
         student.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.Students.UpdateAsync(student, cancellationToken);
@@ -983,6 +1021,30 @@ public class StudentService : IStudentService
             throw new AppException("X-Tenant-ID header is required for admission operations.", 400);
 
         await _schemaProvisioner.EnsureAdmissionModuleAsync(_tenantContext.SchemaName, cancellationToken);
+        await _schemaProvisioner.EnsureStudentSscBoardFieldsAsync(_tenantContext.SchemaName, cancellationToken);
+    }
+
+    private async Task<(string? SscRoll, string? SscRegistrationNo)> ResolveSscBoardNumbersAsync(
+        ClassEntity? clazz,
+        string? sscRoll,
+        string? sscRegistrationNo,
+        Guid? excludeStudentId,
+        CancellationToken cancellationToken)
+    {
+        var roll = SscBoardNumberHelper.NormalizeOptional(sscRoll);
+        var reg = SscBoardNumberHelper.NormalizeOptional(sscRegistrationNo);
+
+        if (roll is null && reg is null)
+            return (null, null);
+
+        if (!SscBoardNumberHelper.IsSscEligibleClass(clazz))
+            throw new AppException("SSC roll and registration number can only be set for class 9 or 10.", 400);
+
+        if (roll is not null &&
+            await _unitOfWork.Students.SscRollExistsAsync(roll, excludeStudentId, cancellationToken))
+            throw new ConflictException($"SSC roll '{roll}' is already assigned to another student.");
+
+        return (roll, reg);
     }
 
     private string RequireTenantSlug()
@@ -1170,6 +1232,8 @@ public class StudentService : IStudentService
             UserId = s.UserId,
             RegisterNo = s.RegisterNo,
             Roll = s.Roll,
+            SscRoll = s.SscRoll,
+            SscRegistrationNo = s.SscRegistrationNo,
             AcademicYear = s.AcademicYear,
             AdmissionDate = s.AdmissionDate,
             ClassId = s.ClassId,

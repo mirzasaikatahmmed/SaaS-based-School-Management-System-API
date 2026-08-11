@@ -18,9 +18,10 @@ public static class CsvImportHelper
         "CategoryId", "Username", "Password",
         "GuardianName", "GuardianRelation", "GuardianMobile", "GuardianEmail",
         "FatherName", "MotherName", "GuardianOccupation", "GuardianIncome",
-        "GuardianEducation", "GuardianAddress", "GuardianUsername", "GuardianPassword",
+        "GuardianEducation", "GuardianAddress",         "GuardianUsername", "GuardianPassword",
         "TransportRoute", "HostelName", "RoomName",
-        "PreviousSchoolName", "PreviousSchoolQualification", "Remarks"
+        "PreviousSchoolName", "PreviousSchoolQualification", "Remarks",
+        "SscRoll", "SscRegistrationNo"
     ];
 
     public const long MaxFileBytes = 5 * 1024 * 1024;
@@ -121,7 +122,9 @@ public static class CsvImportHelper
                 RoomName = Get(raw, "RoomName"),
                 PreviousSchoolName = Get(raw, "PreviousSchoolName"),
                 PreviousSchoolQualification = Get(raw, "PreviousSchoolQualification"),
-                Remarks = Get(raw, "Remarks")
+                Remarks = Get(raw, "Remarks"),
+                SscRoll = Get(raw, "SscRoll"),
+                SscRegistrationNo = Get(raw, "SscRegistrationNo"),
             });
         }
 
@@ -185,7 +188,9 @@ public static class CsvImportHelper
             ["RoomName"] = "",
             ["PreviousSchoolName"] = "",
             ["PreviousSchoolQualification"] = "PSC",
-            ["Remarks"] = ""
+            ["Remarks"] = "",
+            ["SscRoll"] = "",
+            ["SscRegistrationNo"] = ""
         };
 
         // Row 2 — guardian reuse via GuardianUsername
@@ -232,7 +237,9 @@ public static class CsvImportHelper
             ["RoomName"] = "",
             ["PreviousSchoolName"] = "",
             ["PreviousSchoolQualification"] = "JSC",
-            ["Remarks"] = "Good student"
+            ["Remarks"] = "Good student",
+            ["SscRoll"] = "",
+            ["SscRegistrationNo"] = ""
         };
 
         sb.AppendLine(string.Join(',', ExpectedHeaders.Select(h => CsvEscape(row1[h]))));

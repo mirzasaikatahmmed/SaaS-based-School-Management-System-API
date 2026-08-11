@@ -364,6 +364,8 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.RegisterNo).HasColumnName("register_no").HasMaxLength(100).IsRequired();
             entity.Property(e => e.Roll).HasColumnName("roll").HasMaxLength(50);
+            entity.Property(e => e.SscRoll).HasColumnName("ssc_roll").HasMaxLength(50);
+            entity.Property(e => e.SscRegistrationNo).HasColumnName("ssc_registration_no").HasMaxLength(50);
             entity.Property(e => e.AcademicYear).HasColumnName("academic_year");
             entity.Property(e => e.AdmissionDate).HasColumnName("admission_date").HasColumnType("date");
             entity.Property(e => e.ClassId).HasColumnName("class_id");
@@ -403,6 +405,9 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
 
             entity.HasIndex(e => e.RegisterNo).IsUnique();
+            entity.HasIndex(e => e.SscRoll)
+                .IsUnique()
+                .HasFilter("ssc_roll IS NOT NULL AND btrim(ssc_roll) <> ''");
 
             entity.HasOne(e => e.User)
                 .WithMany()

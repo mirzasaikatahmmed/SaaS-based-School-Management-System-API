@@ -25,6 +25,7 @@ public interface ITenantSchemaProvisioner
     Task EnsureBiometricModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureWebsiteModuleAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureStudentSscBoardFieldsAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -199,6 +200,8 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 user_id UUID NOT NULL REFERENCES "{schemaName}".users(id),
                 register_no VARCHAR(100) NOT NULL UNIQUE,
                 roll VARCHAR(50),
+                ssc_roll VARCHAR(50),
+                ssc_registration_no VARCHAR(50),
                 academic_year INT NOT NULL,
                 admission_date DATE NOT NULL DEFAULT CURRENT_DATE,
                 class_id UUID REFERENCES "{schemaName}".classes(id),
@@ -435,6 +438,31 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
         await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
         await EnsureStudentDeactivationFieldsAsync(schemaName, cancellationToken);
+        await EnsureStudentSscBoardFieldsAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureStudentSscBoardFieldsAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".students ADD COLUMN IF NOT EXISTS ssc_roll VARCHAR(50);
+            ALTER TABLE "{schemaName}".students ADD COLUMN IF NOT EXISTS ssc_registration_no VARCHAR(50);
+
+            CREATE UNIQUE INDEX IF NOT EXISTS "ux_{schemaName}_students_ssc_roll"
+                ON "{schemaName}".students (ssc_roll)
+                WHERE ssc_roll IS NOT NULL AND btrim(ssc_roll) <> '';
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260811124732_AddStudentSscBoardNumbers', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 
     public async Task EnsureStudentDeactivationFieldsAsync(string schemaName, CancellationToken cancellationToken = default)

@@ -28,6 +28,7 @@ public interface IStudentRepository
     Task<Student> AddAsync(Student student, CancellationToken cancellationToken = default);
     Task UpdateAsync(Student student, CancellationToken cancellationToken = default);
     Task<bool> RegisterNoExistsAsync(string registerNo, Guid? excludeId = null, CancellationToken cancellationToken = default);
+    Task<bool> SscRollExistsAsync(string sscRoll, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task<bool> RollExistsAsync(string roll, Guid classId, Guid sectionId, int academicYear, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task<int> CountByAcademicYearAsync(int academicYear, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Student>> GetByGuardianUserIdAsync(Guid guardianUserId, CancellationToken cancellationToken = default);

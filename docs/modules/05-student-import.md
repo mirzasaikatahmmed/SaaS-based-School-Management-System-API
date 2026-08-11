@@ -26,3 +26,4 @@ Row-by-row import with partial success. Failed rows can be downloaded; CSV store
 
 - Uses CsvHelper; each valid row creates a student (and guardian when columns present).
 - Per-row transactions so one bad row does not roll back the whole file.
+- Optional columns `SscRoll` / `SscRegistrationNo` (never required) apply only when the import target class is **9 or 10**; leave blank otherwise.

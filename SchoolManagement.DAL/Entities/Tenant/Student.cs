@@ -6,6 +6,10 @@ public class Student
     public Guid UserId { get; set; }
     public string RegisterNo { get; set; } = string.Empty;
     public string? Roll { get; set; }
+    /// <summary>Optional board SSC / SSC Vocational exam roll (class 9–10 only).</summary>
+    public string? SscRoll { get; set; }
+    /// <summary>Optional board SSC / SSC Vocational registration number (class 9–10 only).</summary>
+    public string? SscRegistrationNo { get; set; }
     public int AcademicYear { get; set; }
     public DateTime AdmissionDate { get; set; } = DateTime.UtcNow.Date;
     public Guid? ClassId { get; set; }

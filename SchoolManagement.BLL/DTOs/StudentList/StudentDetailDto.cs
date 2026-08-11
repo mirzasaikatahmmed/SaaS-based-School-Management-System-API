@@ -5,6 +5,8 @@ public class StudentDetailDto
     public Guid Id { get; set; }
     public string RegisterNo { get; set; } = string.Empty;
     public string? Roll { get; set; }
+    public string? SscRoll { get; set; }
+    public string? SscRegistrationNo { get; set; }
     public int AcademicYear { get; set; }
     public DateTime AdmissionDate { get; set; }
     public string ClassName { get; set; } = string.Empty;

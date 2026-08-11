@@ -5,6 +5,10 @@ public class CreateAdmissionDto
     public int AcademicYear { get; set; }
     public string RegisterNo { get; set; } = string.Empty;
     public string? Roll { get; set; }
+    /// <summary>Optional board SSC roll — only for class 9 / 10; omit or leave blank if unknown.</summary>
+    public string? SscRoll { get; set; }
+    /// <summary>Optional board SSC registration number — only for class 9 / 10; omit or leave blank if unknown.</summary>
+    public string? SscRegistrationNo { get; set; }
     public DateTime AdmissionDate { get; set; } = DateTime.UtcNow.Date;
     public Guid ClassId { get; set; }
     public Guid SectionId { get; set; }
