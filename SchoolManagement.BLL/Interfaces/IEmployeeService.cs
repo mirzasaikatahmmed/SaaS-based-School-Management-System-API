@@ -1,6 +1,23 @@
 using SchoolManagement.BLL.DTOs.Employee;
+
 namespace SchoolManagement.BLL.Interfaces;
+
 public interface IEmployeeService
 {
- Task<EmployeeListResponseDto> GetListAsync(EmployeeListFilterDto filter, CancellationToken cancellationToken = default); Task<EmployeeDetailDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default); Task<EmployeeDetailDto> GetMeAsync(CancellationToken cancellationToken = default); Task<EmployeeDetailDto> CreateAsync(AddEmployeeDto dto, CancellationToken cancellationToken = default); Task<EmployeeDetailDto> UpdateAsync(Guid id, UpdateEmployeeDto dto, CancellationToken cancellationToken = default); Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default); Task<EmployeeDetailDto> UploadPhotoAsync(Guid id, Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default); Task<(byte[] Content,string ContentType,string FileName)> ExportAsync(EmployeeListFilterDto filter, CancellationToken cancellationToken = default); Task<IReadOnlyList<string>> GetRolesLookupAsync(CancellationToken cancellationToken = default); Task<IReadOnlyList<DepartmentResponseDto>> GetDepartmentsLookupAsync(CancellationToken cancellationToken = default); Task<IReadOnlyList<DesignationResponseDto>> GetDesignationsLookupAsync(CancellationToken cancellationToken = default); Task<EmployeeLoginDeactivateListResponseDto> GetLoginDeactivateListAsync(EmployeeLoginDeactivateFilterDto filter, CancellationToken cancellationToken = default); Task ActivateLoginAsync(Guid id, CancellationToken cancellationToken = default); Task DeactivateLoginAsync(Guid id, CancellationToken cancellationToken = default); Task<BulkEmployeeActivateResultDto> BulkActivateLoginAsync(BulkEmployeeActivateDto dto, CancellationToken cancellationToken = default);
+    Task<EmployeeListResponseDto> GetListAsync(EmployeeListFilterDto filter, CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> GetMeAsync(CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> CreateAsync(AddEmployeeDto dto, CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> UpdateAsync(Guid id, UpdateEmployeeDto dto, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> UploadPhotoAsync(Guid id, Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
+    Task<EmployeeDetailDto> UploadSignatureAsync(Guid id, Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
+    Task<(byte[] Content, string ContentType, string FileName)> ExportAsync(EmployeeListFilterDto filter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetRolesLookupAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DepartmentResponseDto>> GetDepartmentsLookupAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DesignationResponseDto>> GetDesignationsLookupAsync(CancellationToken cancellationToken = default);
+    Task<EmployeeLoginDeactivateListResponseDto> GetLoginDeactivateListAsync(EmployeeLoginDeactivateFilterDto filter, CancellationToken cancellationToken = default);
+    Task ActivateLoginAsync(Guid id, CancellationToken cancellationToken = default);
+    Task DeactivateLoginAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<BulkEmployeeActivateResultDto> BulkActivateLoginAsync(BulkEmployeeActivateDto dto, CancellationToken cancellationToken = default);
 }

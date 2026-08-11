@@ -25,6 +25,7 @@ public class Employee
     public string? PermanentAddress { get; set; }
     public string? NidNumber { get; set; }
     public string? ProfilePictureUrl { get; set; }
+    public string? SignatureUrl { get; set; }
 
     public string? FacebookUrl { get; set; }
     public string? TwitterUrl { get; set; }

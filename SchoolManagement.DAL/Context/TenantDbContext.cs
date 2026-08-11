@@ -659,6 +659,7 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.PermanentAddress).HasColumnName("permanent_address");
             entity.Property(e => e.NidNumber).HasColumnName("nid_number").HasMaxLength(100);
             entity.Property(e => e.ProfilePictureUrl).HasColumnName("profile_picture_url").HasMaxLength(500);
+            entity.Property(e => e.SignatureUrl).HasColumnName("signature_url").HasMaxLength(500);
             entity.Property(e => e.FacebookUrl).HasColumnName("facebook_url").HasMaxLength(500);
             entity.Property(e => e.TwitterUrl).HasColumnName("twitter_url").HasMaxLength(500);
             entity.Property(e => e.LinkedInUrl).HasColumnName("linkedin_url").HasMaxLength(500);
@@ -1159,8 +1160,8 @@ public class TenantDbContext : DbContext
             entity.Property(e => e.StartingTime).HasColumnName("starting_time").HasColumnType("time");
             entity.Property(e => e.EndingTime).HasColumnName("ending_time").HasColumnType("time");
             entity.Property(e => e.HallId).HasColumnName("hall_id");
-            entity.Property(e => e.WrittenFullMark).HasColumnName("written_full_mark");
-            entity.Property(e => e.WrittenPassMark).HasColumnName("written_pass_mark");
+            entity.Property(e => e.WrittenFullMark).HasColumnName("written_full_mark").HasPrecision(6, 2);
+            entity.Property(e => e.WrittenPassMark).HasColumnName("written_pass_mark").HasPrecision(6, 2);
             entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.HasOne(e => e.Schedule).WithMany(s => s.Subjects).HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.Cascade);

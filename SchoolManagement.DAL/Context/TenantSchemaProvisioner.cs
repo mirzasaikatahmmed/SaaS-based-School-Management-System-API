@@ -26,6 +26,8 @@ public interface ITenantSchemaProvisioner
     Task EnsureSettingsModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureWebsiteModuleAsync(string schemaName, CancellationToken cancellationToken = default);
     Task EnsureStudentSscBoardFieldsAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureEmployeeSignatureFieldAsync(string schemaName, CancellationToken cancellationToken = default);
+    Task EnsureExamScheduleMarksDecimalAsync(string schemaName, CancellationToken cancellationToken = default);
     Task DropSchemaAsync(string schemaName, CancellationToken cancellationToken = default);
 }
 
@@ -652,6 +654,7 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 permanent_address TEXT,
                 nid_number VARCHAR(100),
                 profile_picture_url VARCHAR(500),
+                signature_url VARCHAR(500),
                 facebook_url VARCHAR(500),
                 twitter_url VARCHAR(500),
                 linkedin_url VARCHAR(500),
@@ -728,7 +731,27 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
             """;
 
         await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureEmployeeSignatureFieldAsync(schemaName, cancellationToken);
         await EnsurePayrollModuleAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureEmployeeSignatureFieldAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".employees ADD COLUMN IF NOT EXISTS signature_url VARCHAR(500);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260811210000_AddEmployeeSignature', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 
     public async Task EnsurePayrollModuleAsync(string schemaName, CancellationToken cancellationToken = default)
@@ -1180,8 +1203,8 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
                 starting_time TIME NOT NULL,
                 ending_time TIME NOT NULL,
                 hall_id UUID REFERENCES "{schemaName}".exam_halls(id) ON DELETE SET NULL,
-                written_full_mark INT,
-                written_pass_mark INT,
+                written_full_mark NUMERIC(6,2),
+                written_pass_mark NUMERIC(6,2),
                 sort_order INT NOT NULL DEFAULT 0,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
@@ -1215,6 +1238,31 @@ public class TenantSchemaProvisioner : ITenantSchemaProvisioner
 
             INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
             VALUES ('20260809080441_AddExamMasterModule', '10.0.0')
+            ON CONFLICT DO NOTHING;
+            """;
+
+        await _masterDbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        await EnsureExamScheduleMarksDecimalAsync(schemaName, cancellationToken);
+    }
+
+    public async Task EnsureExamScheduleMarksDecimalAsync(string schemaName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(schemaName) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(schemaName, @"^tenant_[a-z0-9_]+$"))
+        {
+            throw new ArgumentException($"Invalid schema name: {schemaName}", nameof(schemaName));
+        }
+
+        var sql = $"""
+            ALTER TABLE "{schemaName}".exam_schedule_subjects
+                ALTER COLUMN written_full_mark TYPE NUMERIC(6,2)
+                USING written_full_mark::numeric(6,2);
+            ALTER TABLE "{schemaName}".exam_schedule_subjects
+                ALTER COLUMN written_pass_mark TYPE NUMERIC(6,2)
+                USING written_pass_mark::numeric(6,2);
+
+            INSERT INTO "{schemaName}"."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+            VALUES ('20260811213000_ExamScheduleMarksDecimal', '10.0.0')
             ON CONFLICT DO NOTHING;
             """;
 

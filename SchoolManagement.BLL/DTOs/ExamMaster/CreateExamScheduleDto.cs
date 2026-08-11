@@ -15,8 +15,8 @@ public class CreateExamScheduleDto
     public TimeSpan? StartingTime { get; set; }
     public int? ExamDurationMinutes { get; set; }
     public Guid? DefaultHallId { get; set; }
-    public int? WrittenFullMark { get; set; }
-    public int? WrittenPassMark { get; set; }
+    public decimal? WrittenFullMark { get; set; }
+    public decimal? WrittenPassMark { get; set; }
     public List<ExamScheduleSubjectDto> Subjects { get; set; } = [];
 }
 
@@ -28,8 +28,8 @@ public class ExamScheduleSubjectDto
     public TimeSpan StartingTime { get; set; }
     public TimeSpan EndingTime { get; set; }
     public Guid? HallId { get; set; }
-    public int? WrittenFullMark { get; set; }
-    public int? WrittenPassMark { get; set; }
+    public decimal? WrittenFullMark { get; set; }
+    public decimal? WrittenPassMark { get; set; }
     public int SortOrder { get; set; }
 }
 

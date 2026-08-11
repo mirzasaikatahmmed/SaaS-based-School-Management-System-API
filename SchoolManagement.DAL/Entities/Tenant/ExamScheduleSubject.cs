@@ -9,8 +9,8 @@ public class ExamScheduleSubject
     public TimeSpan StartingTime { get; set; }
     public TimeSpan EndingTime { get; set; }
     public Guid? HallId { get; set; }
-    public int? WrittenFullMark { get; set; }
-    public int? WrittenPassMark { get; set; }
+    public decimal? WrittenFullMark { get; set; }
+    public decimal? WrittenPassMark { get; set; }
     public int SortOrder { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

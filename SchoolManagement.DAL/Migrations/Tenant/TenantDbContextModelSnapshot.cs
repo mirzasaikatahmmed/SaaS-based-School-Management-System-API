@@ -1578,6 +1578,11 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("character varying(50)")
                         .HasColumnName("role");
 
+                    b.Property<string>("SignatureUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("signature_url");
+
                     b.Property<bool>("SkipBankDetails")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -2276,12 +2281,14 @@ namespace SchoolManagement.DAL.Migrations.Tenant
                         .HasColumnType("uuid")
                         .HasColumnName("subject_id");
 
-                    b.Property<int?>("WrittenFullMark")
-                        .HasColumnType("integer")
+                    b.Property<decimal?>("WrittenFullMark")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
                         .HasColumnName("written_full_mark");
 
-                    b.Property<int?>("WrittenPassMark")
-                        .HasColumnType("integer")
+                    b.Property<decimal?>("WrittenPassMark")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
                         .HasColumnName("written_pass_mark");
 
                     b.HasKey("Id");

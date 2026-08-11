@@ -21,15 +21,15 @@ public class MarkEntryStudentItemDto
     public bool IsAbsent { get; set; }
     public decimal? WrittenMark { get; set; }
     public decimal? McqMark { get; set; }
-    public int? WrittenFullMark { get; set; }
-    public int? WrittenPassMark { get; set; }
+    public decimal? WrittenFullMark { get; set; }
+    public decimal? WrittenPassMark { get; set; }
 }
 
 public class MarkEntryListResponseDto
 {
     public bool HasMcq { get; set; }
-    public int? WrittenFullMark { get; set; }
-    public int? WrittenPassMark { get; set; }
+    public decimal? WrittenFullMark { get; set; }
+    public decimal? WrittenPassMark { get; set; }
     public IReadOnlyList<MarkEntryStudentItemDto> Items { get; set; } = [];
 }
 

@@ -5,6 +5,7 @@ public class EmployeeListItemDto
     public Guid Id { get; set; }
     public int Sl { get; set; }
     public string? PhotoUrl { get; set; }
+    public string? SignatureUrl { get; set; }
     public string Branch { get; set; } = string.Empty;
     public string StaffId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

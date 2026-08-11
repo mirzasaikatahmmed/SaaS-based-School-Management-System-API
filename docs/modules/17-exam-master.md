@@ -62,7 +62,7 @@ CRUD; unique name; delete blocked if linked to exams.
 | POST | `/save` | Batch upsert; `totalMark = written + mcq`; absent → null marks |
 | GET | `/export` | CSV (`export=csv` or `excel`) |
 
-Written mark must be `0 ≤ mark ≤ writtenFullMark` from the schedule subject row.
+Written / MCQ / total marks are `decimal` (`NUMERIC(6,2)`). Written mark must be `0 ≤ mark ≤ writtenFullMark` from the schedule subject row. Schedule `writtenFullMark` / `writtenPassMark` are also decimal.
 
 ## Roles
 

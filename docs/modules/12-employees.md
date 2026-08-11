@@ -34,6 +34,7 @@ All require `Authorization` + `X-Tenant-ID`.
 | PUT | `/api/employees/{id}` | Update |
 | DELETE | `/api/employees/{id}` | Soft delete |
 | POST | `/api/employees/{id}/photo` | Profile photo → MinIO `employees/{id}/profile.*` |
+| POST | `/api/employees/{id}/signature` | Signature image → MinIO `employees/{id}/signature.*` |
 | GET | `/api/employees/export` | csv / excel / pdf |
 | POST | `/api/employees/import` | CSV bulk (partial success) |
 | GET | `/api/employees/import/sample-csv` | Sample CSV |
@@ -59,11 +60,11 @@ All require `Authorization` + `X-Tenant-ID`.
 - **Create:** atomic user + employee; username unique; email unique on employees.
 - **Department / Designation:** name unique (case-insensitive); cannot delete while in use.
 - **Seed on provision:** departments MATHEMATICS, ENGLISH, BANGLA, SCIENCE, SOCIAL SCIENCE, ICT, PHYSICS; designations HEAD MASTER, ASSISTANT HEAD MASTER, ASSISTANT TEACHER, ADMIN.
-- **Photo:** jpg/jpeg/png/webp, max 2MB; old object deleted before replace; 1h presigned URLs in responses.
+- **Photo / signature:** jpg/jpeg/png/webp, max 2MB; old object deleted before replace; 1h presigned URLs in responses.
 
 ## Workflow
 
 1. Ensure departments / designations (seeded or add via masters).
 2. Add employee (or CSV import) → appears under role tab.
-3. Optional photo upload.
+3. Optional photo and signature upload.
 4. Deactivate login → appears in Login Deactivate for that role → activate / bulk-activate.
