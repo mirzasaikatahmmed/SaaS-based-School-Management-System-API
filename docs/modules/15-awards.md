@@ -11,7 +11,7 @@ Give awards to employees or students. Tabs: Award List + Give Award.
 | GET | `/api/awards` | Admin+, Accountant | Paginated list |
 | GET | `/api/awards/my` | Employee or Student | Own awards |
 | POST | `/api/awards` | Admin+, Accountant | Give award |
-| PUT | `/api/awards/{id}` | Admin+, Accountant | Update |
+| PATCH | `/api/awards/{id}` | Admin+, Accountant | Update |
 | DELETE | `/api/awards/{id}` | Admin+, Accountant | Delete |
 | GET | `/api/awards/export` | Admin+, Accountant | csv / excel / pdf |
 | GET | `/api/awards/lookup/winners?role=` | Admin+, Accountant | Winner dropdown |

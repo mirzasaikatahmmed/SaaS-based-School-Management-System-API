@@ -12,8 +12,8 @@ Shared pattern: Category/Setup → My Application (employee) → Manage Applicat
 | POST | `/my` | Any employee | Self-apply (employee from JWT) |
 | GET | `/` | Admin+, Accountant | Manage list |
 | POST | `/` | Admin+, Accountant | Create for employee |
-| PUT | `/{id}/approve` | Admin+, Accountant | Approve |
-| PUT | `/{id}/reject` | Admin+, Accountant | Reject (+ reason) |
+| PATCH | `/{id}/approve` | Admin+, Accountant | Approve |
+| PATCH | `/{id}/reject` | Admin+, Accountant | Reject (+ reason) |
 | DELETE | `/{id}` | Admin+, Accountant | Delete (not if Approved) |
 | GET | `/export` | Admin+, Accountant | csv / excel / pdf |
 | GET | `/lookup/employees?role=` | Admin+, Accountant | Applicant dropdown |
@@ -33,7 +33,7 @@ CRUD + `/lookup?role=` (Admin / Super Admin). Name+Role unique. Cannot delete if
 | GET/POST | `/my` | Employee | Own list / apply |
 | DELETE | `/my/{id}` | Employee | Cancel pending only |
 | GET/POST | `/` | Admin+ | Manage list / admin create |
-| PUT | `/{id}/approve` \| `/reject` | Admin+ | Review |
+| PATCH | `/{id}/approve` \| `/reject` | Admin+ | Review |
 | DELETE | `/{id}` | Admin+ | Delete |
 | GET | `/export` | Admin+ | Export |
 | POST | `/{id}/attachment` | Admin+ | MinIO ≤5MB |

@@ -28,7 +28,7 @@ Roles: Super Admin, Admin, Teacher, Receptionist.
 | GET | `/api/admission` | Admin+, Teacher, Parent, Student | List / filter students |
 | GET | `/api/admission/{id}` | Same | Detail (scoped for parent/student) |
 | POST | `/api/admission` | Super Admin, Admin | Create admission |
-| PUT | `/api/admission/{id}` | Super Admin, Admin | Update |
+| PATCH | `/api/admission/{id}` | Super Admin, Admin | Update |
 | DELETE | `/api/admission/{id}` | Super Admin, Admin | Soft delete (+ deactivate login) |
 | POST | `/api/admission/{id}/profile-picture` | Super Admin, Admin | Student photo → MinIO |
 | POST | `/api/admission/{id}/guardian-picture` | Super Admin, Admin | Guardian photo → MinIO |

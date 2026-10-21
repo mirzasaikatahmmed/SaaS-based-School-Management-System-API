@@ -286,6 +286,7 @@ public class AwardService(
         if (string.IsNullOrEmpty(tenant.SchemaName))
             throw new AppException("X-Tenant-ID header is required.", 400);
         await provisioner.EnsureEmployeeModuleAsync(tenant.SchemaName!, ct);
+        await provisioner.EnsureAwardModuleAsync(tenant.SchemaName!, ct);
     }
 
     private HashSet<string> Roles()

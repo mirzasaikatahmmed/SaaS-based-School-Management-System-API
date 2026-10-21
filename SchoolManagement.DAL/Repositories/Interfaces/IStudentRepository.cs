@@ -32,4 +32,16 @@ public interface IStudentRepository
     Task<bool> RollExistsAsync(string roll, Guid classId, Guid sectionId, int academicYear, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task<int> CountByAcademicYearAsync(int academicYear, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Student>> GetByGuardianUserIdAsync(Guid guardianUserId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<StudentClassGenderCount>> GetActiveGenderCountsByClassAsync(
+        int? academicYear,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record StudentClassGenderCount(
+    Guid? ClassId,
+    Guid? SectionId,
+    string ClassName,
+    string SectionName,
+    int Male,
+    int Female,
+    int Total);

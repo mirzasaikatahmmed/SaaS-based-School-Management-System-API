@@ -75,6 +75,8 @@ public class MasterDbContext : DbContext
             entity.Property(e => e.LastName).HasColumnName("last_name").HasMaxLength(100).IsRequired();
             entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            entity.Property(e => e.RefreshToken).HasColumnName("refresh_token").HasMaxLength(500);
+            entity.Property(e => e.RefreshTokenExpiresAt).HasColumnName("refresh_token_expires_at");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("NOW()");
 

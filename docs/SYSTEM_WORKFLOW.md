@@ -3,7 +3,7 @@
 > **Living document.** This describes the **currently implemented** end-to-end flow.
 > When new modules ship, update this file and the [module index](./MODULES.md).
 
-**Last updated:** 2026-08-10 · Modules 1–26 (Auth → School Settings)
+**Last updated:** 2026-10-21 · Modules 1–36 (Auth → Public Website)
 
 ---
 
@@ -55,7 +55,10 @@ flowchart TB
 | Student Accounting | Fees types/groups · Allocation · Invoices · Offline payments · Reminders |
 | Office Accounting | Voucher heads · Accounts · Deposits · Expenses · Transactions (Dr/Cr/running balance) |
 | Messaging | Inbox · Sent · Important · Trash · Reply · Attachments |
-| Settings | Global (platform) · School (per-tenant) · Payment gateways · Logos |
+| Settings | Global (platform) · School (per-tenant) · Payment gateways · Logos · Roles · Sessions · Cron · Backup · Login log · Email/SMS config |
+| Reports | Student · Attendance · HR · Examination (report card / tabulation / progress) |
+| Biometric | ZKTeco K40-H devices · PIN maps · punch logs |
+| Public website | Anonymous `/api/public/*` reads (CMS admin write APIs not shipped) |
 
 ---
 
@@ -293,12 +296,12 @@ When these land, extend the diagrams above and add module docs:
 
 | Area | Examples (planned / not in API yet) |
 |------|-------------------------------------|
-| Academics | Homework, report cards (exams/attendance: modules 17–19) |
-| Fees | Advanced fee reports / gateway webhooks (core fees: module 22) |
+| Academics | Homework assign/evaluation (cron stub exists; exams/report cards: modules 17–19, 34) |
+| Fees | Advanced fee reports / gateway webhooks (core fees: module 22; payment JSON is config-only) |
 | Library / Inventory | Assets beyond library books (library: module 20) |
-| Transport ops | Live routes beyond lookup seed |
+| Transport ops | Vehicles and live route assignment beyond lookup seed |
 | Hostel ops | Allocation workflows beyond lookup |
-| Messaging | SMS/email notifications, announcements (in-app mailbox: module 24) |
+| Messaging | SMS/email **dispatch queue** (SMTP + BulkSMSBD config: modules 29–30; in-app mailbox: module 24) |
 | Public CMS backend | Admin CRUD for website content (public GETs live: [36](./modules/36-public-website.md)) |
 | Analytics | Dashboards beyond school stats |
 | Mobile apps | Dedicated client apps |

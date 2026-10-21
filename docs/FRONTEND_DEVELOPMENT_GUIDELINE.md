@@ -231,7 +231,7 @@ Backend module docs live in `docs/modules/`. Build these **portal pages** (sugge
 | Page | Route | API |
 |------|-------|-----|
 | Login | `/login` | `POST /api/auth/login` |
-| Profile | `/portal/profile` | `GET/PUT /api/auth/me` |
+| Profile | `/portal/profile` | `GET/PATCH /api/auth/me` |
 | Refresh (silent) | — | `POST /api/auth/refresh-token` |
 
 ### 02 — Tenants & Schools · [`02-tenants-schools.md`](./modules/02-tenants-schools.md)
@@ -660,7 +660,7 @@ pnpm install
 pnpm dev   # http://localhost:3000
 ```
 
-CORS: ensure API allows the Next.js origin in Development.
+CORS: API allows origins in `Cors:AllowedOrigins` (defaults: `http://localhost:3000`, `http://127.0.0.1:3000`). Add production frontend URLs there.
 
 Swagger (contract explorer): `http://localhost:5000/swagger`
 

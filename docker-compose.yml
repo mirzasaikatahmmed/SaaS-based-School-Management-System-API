@@ -50,6 +50,8 @@ services:
       - MinIO__SecretKey=${MINIO_ROOT_PASSWORD:-minioadmin123}
       - MinIO__BucketName=${MINIO_BUCKET:-school-mgmt}
       - JwtSettings__SecretKey=your-super-secret-key-minimum-32-characters-long
+      - Cors__AllowedOrigins__0=http://localhost:3000
+      - Cors__AllowedOrigins__1=http://127.0.0.1:3000
     ports:
       - "5000:8080"
     depends_on:

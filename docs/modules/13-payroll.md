@@ -30,7 +30,7 @@ All require `Authorization` + `X-Tenant-ID`.
 | GET | `/api/payroll/salary-templates/lookup` | Dropdown (id + grade) |
 | GET | `/api/payroll/salary-templates/{id}` | Detail + allowance/deduction rows |
 | POST | `/api/payroll/salary-templates` | Create |
-| PUT | `/api/payroll/salary-templates/{id}` | Update (replace rows) |
+| PATCH | `/api/payroll/salary-templates/{id}` | Update (replace rows) |
 | DELETE | `/api/payroll/salary-templates/{id}` | Delete if not assigned |
 
 **Net salary (server):** `Basic + ΣAllowances − ΣDeductions`
@@ -40,7 +40,7 @@ All require `Authorization` + `X-Tenant-ID`.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/payroll/salary-assign?role=` | Employees + current grade (`role` required) |
-| PUT | `/api/payroll/salary-assign/{employeeId}` | Upsert grade |
+| PATCH | `/api/payroll/salary-assign/{employeeId}` | Upsert grade |
 | POST | `/api/payroll/salary-assign/bulk` | Bulk upsert |
 
 ## Salary payment
@@ -49,7 +49,7 @@ All require `Authorization` + `X-Tenant-ID`.
 |--------|------|-------------|
 | GET | `/api/payroll/salary-payment?role=&paymentMonth=` | Status list (`YYYY-MM`) |
 | POST | `/api/payroll/salary-payment/{employeeId}/pay` | Mark Paid (snapshot template) |
-| PUT | `/api/payroll/salary-payment/{id}/update` | Update overtime/advance/note |
+| PATCH | `/api/payroll/salary-payment/{id}/update` | Update overtime/advance/note |
 | GET | `/api/payroll/salary-payment/{id}` | Detail |
 | GET | `/api/payroll/salary-payment/export` | csv / excel / pdf |
 | GET | `/api/payroll/my-salary` | Own template |
