@@ -10,8 +10,8 @@ Parents whose **login** is deactivated (`users.active = false`). Guardian record
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/parent-login-deactivate` | List (Search only; `?export=` for file) |
-| PUT | `/api/parent-login-deactivate/{id}/activate` | Enable login |
-| PUT | `/api/parent-login-deactivate/{id}/deactivate` | Disable login |
+| PATCH | `/api/parent-login-deactivate/{id}/activate` | Enable login |
+| PATCH | `/api/parent-login-deactivate/{id}/deactivate` | Disable login |
 | POST | `/api/parent-login-deactivate/bulk-activate` | Bulk enable → `{ activated, failed }` |
 
 ## List columns

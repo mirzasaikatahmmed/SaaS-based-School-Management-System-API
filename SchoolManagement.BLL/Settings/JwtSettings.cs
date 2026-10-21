@@ -27,3 +27,12 @@ public class SuperAdminSettings
     public string FirstName { get; set; } = "Super";
     public string LastName { get; set; } = "Admin";
 }
+
+public class CorsSettings
+{
+    public string[] AllowedOrigins { get; set; } =
+    [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ];
+}

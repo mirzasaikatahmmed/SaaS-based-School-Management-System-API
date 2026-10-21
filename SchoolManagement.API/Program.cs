@@ -26,6 +26,22 @@ try
     builder.Services.AddJwtAuthentication(builder.Configuration);
     builder.Services.AddSwaggerDocumentation();
     builder.Services.AddHealthChecks();
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("Frontend", policy =>
+        {
+            var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                ?? [];
+            if (origins.Length == 0)
+                origins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+
+            policy.WithOrigins(origins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .WithExposedHeaders("Content-Disposition");
+        });
+    });
 
     var app = builder.Build();
 
@@ -81,6 +97,7 @@ try
     }
 
     app.UseSerilogRequestLogging();
+    app.UseCors("Frontend");
     app.UseAuthentication();
     app.UseMiddleware<TenantResolutionMiddleware>();
     app.UseAuthorization();

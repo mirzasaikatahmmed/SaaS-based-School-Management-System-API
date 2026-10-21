@@ -57,7 +57,7 @@ public class FeatureSettingsDto
 {
     public int MaxUsers { get; set; } = 100;
     public int StorageQuotaGB { get; set; } = 10;
-    public bool AllowSelfRegistration { get; set; } = true;
+    public bool AllowSelfRegistration { get; set; } = false;
     public bool RequireEmailVerification { get; set; } = true;
 }
 

@@ -11,7 +11,7 @@ Reusable **reason labels** (Transfer, Dropout, Expelled, …) — not the list o
 |--------|------|-------------|
 | GET | `/api/deactivate-reasons` | List all (ordered by `created_at`) |
 | POST | `/api/deactivate-reasons` | Create |
-| PUT | `/api/deactivate-reasons/{id}` | Update |
+| PATCH | `/api/deactivate-reasons/{id}` | Update |
 | DELETE | `/api/deactivate-reasons/{id}` | Delete |
 
 ## Response fields

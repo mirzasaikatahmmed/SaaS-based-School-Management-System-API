@@ -58,6 +58,8 @@ Column naming follows the live ahskbera dump (`password`, `mobileno`, `photo`, `
 
 **HTTP convention:** updates use **`PATCH`** (no `PUT` endpoints).
 
+**CORS:** browser origins are listed under `Cors:AllowedOrigins` (default `http://localhost:3000`). Super Admin refresh tokens are stored on `public.super_admins`; `POST /api/auth/register` can only create student/parent accounts.
+
 ---
 
 ## Quick start

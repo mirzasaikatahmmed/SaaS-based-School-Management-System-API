@@ -22,7 +22,7 @@ Tenant-scoped exam setup: terms, halls, mark distributions, exams, schedules, an
 |--------|------|-------|
 | GET | `/` | Admin, SuperAdmin, Teacher |
 | POST | `/` | Admin, SuperAdmin |
-| PUT | `/{id}` | Admin, SuperAdmin |
+| PATCH | `/{id}` | Admin, SuperAdmin |
 | DELETE | `/{id}` | Admin, SuperAdmin — blocked if used by exams |
 
 ### Exam Halls — `/api/exam/halls`
@@ -30,7 +30,7 @@ Tenant-scoped exam setup: terms, halls, mark distributions, exams, schedules, an
 |--------|------|-------|
 | GET | `/` | List |
 | GET | `/lookup` | `{ id, hallNo, seats }` |
-| POST / PUT / DELETE | | Unique `hallNo`; delete blocked if used in schedule subjects |
+| POST / PATCH / DELETE | | Unique `hallNo`; delete blocked if used in schedule subjects |
 
 ### Mark Distributions — `/api/exam/mark-distributions`
 CRUD; unique name; delete blocked if linked to exams.
@@ -41,9 +41,9 @@ CRUD; unique name; delete blocked if linked to exams.
 | GET | `/` | List (students see published only) |
 | GET | `/lookup` | `{ id, name, termName }` |
 | GET | `/{id}` | Detail + mark distribution names |
-| POST / PUT | | Multi-select `markDistributionIds` → junction |
-| PUT | `/{id}/publish` | Toggle `isPublished` |
-| PUT | `/{id}/publish-result` | Toggle `isResultPublished` |
+| POST / PATCH | | Multi-select `markDistributionIds` → junction |
+| PATCH | `/{id}/publish` | Toggle `isPublished` |
+| PATCH | `/{id}/publish-result` | Toggle `isResultPublished` |
 | DELETE | `/{id}` | Blocked if schedules or mark entries exist |
 
 ### Schedules — `/api/exam/schedules`
@@ -52,7 +52,7 @@ CRUD; unique name; delete blocked if linked to exams.
 | GET | `/?classId=&sectionId=` | Filter list |
 | GET | `/{id}` | Modal detail (formatted dates/times) |
 | POST | `/` | Unique exam+class+section; subjects auto from class assignments if empty + quick-apply params |
-| PUT | `/{id}` | Replace subject rows |
+| PATCH | `/{id}` | Replace subject rows |
 | DELETE | `/{id}` | Cascade subjects |
 
 ### Mark Entries — `/api/exam/mark-entries`

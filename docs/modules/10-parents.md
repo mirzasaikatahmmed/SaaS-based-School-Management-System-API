@@ -13,7 +13,7 @@ Management layer over existing `guardians` (created at admission or standalone).
 | GET | `/api/parents/export` | Super Admin, Admin | csv / excel / pdf |
 | GET | `/api/parents/{id}` | Admin+, Teacher, Parent | Detail |
 | POST | `/api/parents` | Super Admin, Admin | Standalone add + user account |
-| PUT | `/api/parents/{id}` | Super Admin, Admin | Update |
+| PATCH | `/api/parents/{id}` | Super Admin, Admin | Update |
 | DELETE | `/api/parents/{id}` | Super Admin, Admin | Soft delete |
 | POST | `/api/parents/{id}/photo` | Super Admin, Admin | Photo → MinIO `guardians/{id}/profile.*` |
 

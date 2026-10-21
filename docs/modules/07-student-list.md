@@ -15,11 +15,11 @@ Main student directory under Student Details: filter, search, export, bulk delet
 | GET | `/api/student-list/deactivate-reasons` | Super Admin, Admin | Currently deactivated *students* (records) |
 | POST | `/api/student-list/bulk-delete` | Super Admin, Admin | Soft delete many |
 | GET | `/api/student-list/{id}` | Admin+, Teacher, Parent, Student | Full detail |
-| PUT | `/api/student-list/{id}` | Super Admin, Admin | Update (`UpdateAdmissionDto`) |
+| PATCH | `/api/student-list/{id}` | Super Admin, Admin | Update (`UpdateAdmissionDto`) |
 | DELETE | `/api/student-list/{id}` | Super Admin, Admin | Soft delete |
-| PUT | `/api/student-list/{id}/toggle-login` | Super Admin, Admin | Toggle `users.active` |
+| PATCH | `/api/student-list/{id}/toggle-login` | Super Admin, Admin | Toggle `users.active` |
 | POST | `/api/student-list/{id}/deactivate` | Super Admin, Admin | Soft deactivate + reason text |
-| PUT | `/api/student-list/{id}/activate` | Super Admin, Admin | Re-activate record |
+| PATCH | `/api/student-list/{id}/activate` | Super Admin, Admin | Re-activate record |
 
 ## List columns (conceptual)
 

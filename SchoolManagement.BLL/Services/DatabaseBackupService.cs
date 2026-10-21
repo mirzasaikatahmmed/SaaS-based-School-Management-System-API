@@ -176,10 +176,10 @@ public class DatabaseBackupService(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "pg_dump failed; writing placeholder schema export");
-            note = $"pg_dump unavailable ({ex.Message}). Placeholder export created.";
-            sqlBytes = Encoding.UTF8.GetBytes(
-                $"-- Placeholder backup for {schema} at {DateTime.UtcNow:O}\n-- Install pg_dump for full schema dumps.\n");
+            logger.LogError(ex, "pg_dump failed for schema {Schema}", schema);
+            throw new AppException(
+                $"Database backup failed because pg_dump is unavailable or could not run: {ex.Message}",
+                503);
         }
 
         var zipStream = new MemoryStream();

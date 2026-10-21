@@ -612,41 +612,17 @@ public class PublicWebsiteService(
     public async Task<StudentStatisticsDto> GetStudentStatisticsAsync(int? academicYear, CancellationToken ct = default)
     {
         await Ready(ct);
-        var (students, _) = await uow.Students.SearchAsync(new StudentSearchFilter
+        var counts = await uow.Students.GetActiveGenderCountsByClassAsync(academicYear, ct);
+        var rows = counts.Select(r => new StudentStatRowDto
         {
-            IsActive = true,
-            AcademicYear = academicYear,
-            Page = 1,
-            PageSize = 50_000,
-            SortBy = "class"
-        }, ct);
-
-        var rows = students
-            .Where(s => s.ClassId.HasValue)
-            .GroupBy(s => new
-            {
-                ClassId = s.ClassId,
-                SectionId = s.SectionId,
-                ClassName = s.Class?.Name ?? "—",
-                SectionName = s.Section?.Name ?? "—"
-            })
-            .Select(g =>
-            {
-                var male = g.Count(s => IsMale(s.Gender));
-                var female = g.Count(s => IsFemale(s.Gender));
-                return new StudentStatRowDto
-                {
-                    ClassId = g.Key.ClassId,
-                    SectionId = g.Key.SectionId,
-                    ClassName = g.Key.ClassName,
-                    SectionName = g.Key.SectionName,
-                    Male = male,
-                    Female = female,
-                    Total = g.Count()
-                };
-            })
-            .OrderBy(r => r.ClassName).ThenBy(r => r.SectionName)
-            .ToList();
+            ClassId = r.ClassId,
+            SectionId = r.SectionId,
+            ClassName = r.ClassName,
+            SectionName = r.SectionName,
+            Male = r.Male,
+            Female = r.Female,
+            Total = r.Total
+        }).ToList();
 
         return new StudentStatisticsDto
         {
@@ -936,19 +912,6 @@ public class PublicWebsiteService(
             ]
         }
     ];
-
-    private static bool IsMale(string? gender)
-        => !string.IsNullOrWhiteSpace(gender) &&
-           (gender.Equals("Male", StringComparison.OrdinalIgnoreCase)
-            || gender.Equals("M", StringComparison.OrdinalIgnoreCase)
-            || gender.Contains("পুরুষ", StringComparison.OrdinalIgnoreCase));
-
-    private static bool IsFemale(string? gender)
-        => !string.IsNullOrWhiteSpace(gender) &&
-           (gender.Equals("Female", StringComparison.OrdinalIgnoreCase)
-            || gender.Equals("F", StringComparison.OrdinalIgnoreCase)
-            || gender.Contains("মহিলা", StringComparison.OrdinalIgnoreCase)
-            || gender.Contains("নারী", StringComparison.OrdinalIgnoreCase));
 
     private static string NormalizeClassToken(string? name)
     {

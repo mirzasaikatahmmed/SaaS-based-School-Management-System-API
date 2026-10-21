@@ -8,7 +8,7 @@ public class DatabaseBackup
     public string ObjectKey { get; set; } = string.Empty;
     public long SizeBytes { get; set; }
 
-    /// <summary>Set when pg_dump was unavailable and a placeholder schema export was used instead.</summary>
+    /// <summary>Optional operator note for this backup. Fake placeholder dumps are no longer created.</summary>
     public string? Note { get; set; }
 
     public Guid? CreatedBy { get; set; }

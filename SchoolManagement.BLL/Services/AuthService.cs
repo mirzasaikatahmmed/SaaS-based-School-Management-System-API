@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using SchoolManagement.BLL.DTOs.Auth;
 using SchoolManagement.BLL.Exceptions;
@@ -51,10 +53,6 @@ public class AuthService : IAuthService
             if (!superAdmin.IsActive)
                 throw new UnauthorizedException("Account is deactivated.");
 
-            superAdmin.LastLoginAt = DateTime.UtcNow;
-            await _tenantRepository.UpdateSuperAdminAsync(superAdmin, cancellationToken);
-            await _unitOfWork.SaveMasterChangesAsync(cancellationToken);
-
             var (accessToken, accessExpires) = _jwtHelper.GenerateAccessToken(
                 superAdmin.Id,
                 superAdmin.Email,
@@ -64,13 +62,18 @@ public class AuthService : IAuthService
                 isSuperAdmin: true);
 
             var (refreshToken, refreshExpires) = _jwtHelper.GenerateRefreshToken();
+            superAdmin.LastLoginAt = DateTime.UtcNow;
+            superAdmin.RefreshToken = refreshToken;
+            superAdmin.RefreshTokenExpiresAt = refreshExpires;
+            await _tenantRepository.UpdateSuperAdminAsync(superAdmin, cancellationToken);
+            await _unitOfWork.SaveMasterChangesAsync(cancellationToken);
 
             _logger.LogInformation("Super admin {Email} logged in from {Ip}", request.Email, ipAddress);
 
             return new LoginResponseDto
             {
                 AccessToken = accessToken,
-                RefreshToken = $"sa:{superAdmin.Id}:{refreshToken}",
+                RefreshToken = FormatSuperAdminRefresh(superAdmin.Id, refreshToken),
                 AccessTokenExpiresAt = accessExpires,
                 RefreshTokenExpiresAt = refreshExpires,
                 User = MapSuperAdmin(superAdmin)
@@ -190,8 +193,12 @@ public class AuthService : IAuthService
         if (await _unitOfWork.Users.UsernameExistsAsync(request.Username, cancellationToken))
             throw new ConflictException("Username is already taken.");
 
-        var role = await _unitOfWork.Users.GetRoleByNameAsync(request.Role, cancellationToken)
-            ?? throw new AppException($"Role '{request.Role}' does not exist.", 400);
+        var requestedRole = (request.Role ?? string.Empty).Trim().ToLowerInvariant();
+        if (requestedRole is not (AppConstants.Roles.Student or AppConstants.Roles.Parent))
+            throw new AppException("Self-registration is limited to student or parent accounts.", 400);
+
+        var role = await _unitOfWork.Users.GetRoleByNameAsync(requestedRole, cancellationToken)
+            ?? throw new AppException($"Role '{requestedRole}' does not exist.", 400);
 
         var user = new User
         {
@@ -227,8 +234,8 @@ public class AuthService : IAuthService
         string? ipAddress,
         CancellationToken cancellationToken = default)
     {
-        if (request.RefreshToken.StartsWith("sa:", StringComparison.Ordinal))
-            throw new UnauthorizedException("Super admin sessions must re-authenticate. Refresh is not supported.");
+        if (TryParseSuperAdminRefresh(request.RefreshToken, out var superAdminId, out var saToken))
+            return await RefreshSuperAdminAsync(superAdminId, saToken, cancellationToken);
 
         if (!_tenantContext.IsResolved)
             throw new AppException("Tenant header 'X-Tenant-ID' is required.", 400);
@@ -282,8 +289,17 @@ public class AuthService : IAuthService
 
     public async Task RevokeTokenAsync(RevokeTokenRequestDto request, CancellationToken cancellationToken = default)
     {
-        if (request.RefreshToken.StartsWith("sa:", StringComparison.Ordinal))
+        if (TryParseSuperAdminRefresh(request.RefreshToken, out var superAdminId, out var saToken))
         {
+            var admin = await _tenantRepository.GetSuperAdminByIdAsync(superAdminId, cancellationToken);
+            if (admin is not null && TokensEqual(admin.RefreshToken, saToken))
+            {
+                admin.RefreshToken = null;
+                admin.RefreshTokenExpiresAt = null;
+                await _tenantRepository.UpdateSuperAdminAsync(admin, cancellationToken);
+                await _unitOfWork.SaveMasterChangesAsync(cancellationToken);
+            }
+
             _logger.LogInformation("Super admin logout");
             return;
         }
@@ -367,6 +383,80 @@ public class AuthService : IAuthService
         TenantSlug = _tenantContext.TenantSlug,
         IsSuperAdmin = false
     };
+
+    private async Task<LoginResponseDto> RefreshSuperAdminAsync(
+        Guid adminId,
+        string presentedToken,
+        CancellationToken cancellationToken)
+    {
+        var admin = await _tenantRepository.GetSuperAdminByIdAsync(adminId, cancellationToken)
+            ?? throw new UnauthorizedException("Invalid refresh token.");
+
+        if (!admin.IsActive)
+            throw new UnauthorizedException("Account is deactivated.");
+
+        if (string.IsNullOrEmpty(admin.RefreshToken)
+            || !admin.RefreshTokenExpiresAt.HasValue
+            || admin.RefreshTokenExpiresAt.Value <= DateTime.UtcNow
+            || !TokensEqual(admin.RefreshToken, presentedToken))
+            throw new UnauthorizedException("Refresh token is expired or revoked.");
+
+        var (accessToken, accessExpires) = _jwtHelper.GenerateAccessToken(
+            admin.Id,
+            admin.Email,
+            null,
+            null,
+            [AppConstants.Roles.SuperAdmin],
+            isSuperAdmin: true);
+
+        var (newRefresh, newRefreshExp) = _jwtHelper.GenerateRefreshToken();
+        admin.RefreshToken = newRefresh;
+        admin.RefreshTokenExpiresAt = newRefreshExp;
+        await _tenantRepository.UpdateSuperAdminAsync(admin, cancellationToken);
+        await _unitOfWork.SaveMasterChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Refresh token rotated for super admin {Email}", admin.Email);
+
+        return new LoginResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = FormatSuperAdminRefresh(admin.Id, newRefresh),
+            AccessTokenExpiresAt = accessExpires,
+            RefreshTokenExpiresAt = newRefreshExp,
+            User = MapSuperAdmin(admin)
+        };
+    }
+
+    private static string FormatSuperAdminRefresh(Guid adminId, string token)
+        => $"sa:{adminId:D}:{token}";
+
+    private static bool TryParseSuperAdminRefresh(string value, out Guid adminId, out string token)
+    {
+        adminId = default;
+        token = string.Empty;
+        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("sa:", StringComparison.Ordinal))
+            return false;
+
+        var parts = value.Split(':', 3);
+        if (parts.Length != 3 || !Guid.TryParse(parts[1], out adminId) || string.IsNullOrWhiteSpace(parts[2]))
+            return false;
+
+        token = parts[2];
+        return true;
+    }
+
+    private static bool TokensEqual(string? stored, string presented)
+    {
+        if (string.IsNullOrEmpty(stored))
+            return false;
+
+        var a = Encoding.UTF8.GetBytes(stored);
+        var b = Encoding.UTF8.GetBytes(presented);
+        if (a.Length != b.Length)
+            return false;
+
+        return CryptographicOperations.FixedTimeEquals(a, b);
+    }
 
     private static UserProfileDto MapSuperAdmin(DAL.Entities.Master.SuperAdmin admin) => new()
     {

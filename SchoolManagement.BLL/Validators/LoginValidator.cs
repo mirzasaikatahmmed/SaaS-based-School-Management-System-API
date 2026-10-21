@@ -58,19 +58,13 @@ public class RegisterValidator : AbstractValidator<RegisterRequestDto>
         RuleFor(x => x.Role)
             .NotEmpty()
             .Must(role => AllowedRoles.Contains(role.Trim().ToLowerInvariant()))
-            .WithMessage($"Invalid role. Allowed: {string.Join(", ", AllowedRoles)}");
+            .WithMessage($"Self-registration is limited to: {string.Join(", ", AllowedRoles)}");
     }
 
     private static readonly HashSet<string> AllowedRoles =
     [
-        AppConstants.Roles.Admin,
-        AppConstants.Roles.Teacher,
-        AppConstants.Roles.Accountant,
-        AppConstants.Roles.Librarian,
         AppConstants.Roles.Parent,
-        AppConstants.Roles.Student,
-        AppConstants.Roles.Receptionist,
-        AppConstants.Roles.Staff
+        AppConstants.Roles.Student
     ];
 }
 

@@ -20,9 +20,9 @@ Public application funnel + admin review. Approving an application creates a rea
 | GET | `/api/online-admission/export` | Super Admin, Admin | csv / excel / pdf |
 | GET | `/api/online-admission/{id}` | Super Admin, Admin, Teacher | Detail |
 | GET | `/api/online-admission/{id}/print` | Super Admin, Admin, Teacher | Print payload |
-| PUT | `/api/online-admission/{id}/approve` | Super Admin, Admin | Approve → create student |
-| PUT | `/api/online-admission/{id}/decline` | Super Admin, Admin | Decline with reason |
-| PUT | `/api/online-admission/{id}/payment` | Super Admin, Admin | Record payment |
+| PATCH | `/api/online-admission/{id}/approve` | Super Admin, Admin | Approve → create student |
+| PATCH | `/api/online-admission/{id}/decline` | Super Admin, Admin | Decline with reason |
+| PATCH | `/api/online-admission/{id}/payment` | Super Admin, Admin | Record payment |
 | DELETE | `/api/online-admission/{id}` | Super Admin, Admin | Delete (not if approved) |
 
 ## Workflow

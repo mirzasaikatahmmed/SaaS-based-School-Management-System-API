@@ -63,7 +63,7 @@ Fees reminder is idempotent via `notification_dispatch_log` (job + entity + date
 | Method | Path |
 |--------|------|
 | GET | `/` (paged) |
-| POST | `/create` (`pg_dump` → zip → MinIO `db-backups/`) |
+| POST | `/create` (`pg_dump` → zip → MinIO `db-backups/`; fails with 503 if `pg_dump` is missing — no placeholder dump) |
 | GET | `/{id}/download` (presigned URL) |
 | DELETE | `/{id}` |
 | POST | `/restore` (multipart `.sql`/`.zip`; safety backup first) |

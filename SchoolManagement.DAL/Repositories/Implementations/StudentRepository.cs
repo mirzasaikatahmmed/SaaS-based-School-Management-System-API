@@ -107,7 +107,9 @@ public class StudentRepository : IStudentRepository
 
         var total = await query.CountAsync(cancellationToken);
         var page = filter.Page < 1 ? 1 : filter.Page;
-        var pageSize = filter.PageSize is < 1 or > 10_000 ? 20 : filter.PageSize;
+        // Clamp oversized pageSize instead of silently falling back to 20 (that
+        // made public student statistics count only a single page of students).
+        var pageSize = filter.PageSize < 1 ? 20 : Math.Min(filter.PageSize, 10_000);
 
         query = ApplySort(query, filter.SortBy, filter.SortDir);
 
@@ -144,11 +146,11 @@ public class StudentRepository : IStudentRepository
                 ? query.OrderByDescending(s => s.FirstName).ThenByDescending(s => s.LastName)
                 : query.OrderBy(s => s.FirstName).ThenBy(s => s.LastName),
             "classname" or "class" => desc
-                ? query.OrderByDescending(s => s.Class!.Name)
-                : query.OrderBy(s => s.Class!.Name),
+                ? query.OrderByDescending(s => s.Class != null ? s.Class.Name : "")
+                : query.OrderBy(s => s.Class != null ? s.Class.Name : ""),
             "sectionname" or "section" => desc
-                ? query.OrderByDescending(s => s.Section!.Name)
-                : query.OrderBy(s => s.Section!.Name),
+                ? query.OrderByDescending(s => s.Section != null ? s.Section.Name : "")
+                : query.OrderBy(s => s.Section != null ? s.Section.Name : ""),
             "registerno" => desc
                 ? query.OrderByDescending(s => s.RegisterNo)
                 : query.OrderBy(s => s.RegisterNo),
@@ -230,6 +232,49 @@ public class StudentRepository : IStudentRepository
     public async Task<int> CountByAcademicYearAsync(int academicYear, CancellationToken cancellationToken = default)
     {
         return await _context.Students.CountAsync(s => s.AcademicYear == academicYear, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StudentClassGenderCount>> GetActiveGenderCountsByClassAsync(
+        int? academicYear,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Students
+            .AsNoTracking()
+            .Where(s => s.IsActive && s.ClassId.HasValue);
+
+        if (academicYear.HasValue)
+            query = query.Where(s => s.AcademicYear == academicYear.Value);
+
+        var rows = await query
+            .GroupBy(s => new
+            {
+                s.ClassId,
+                s.SectionId,
+                ClassName = s.Class != null ? s.Class.Name : "—",
+                SectionName = s.Section != null ? s.Section.Name : "—"
+            })
+            .Select(g => new StudentClassGenderCount(
+                g.Key.ClassId,
+                g.Key.SectionId,
+                g.Key.ClassName ?? "—",
+                g.Key.SectionName ?? "—",
+                g.Count(s =>
+                    s.Gender != null && (
+                        s.Gender.ToLower() == "male"
+                        || s.Gender.ToLower() == "m"
+                        || s.Gender.Contains("পুরুষ"))),
+                g.Count(s =>
+                    s.Gender != null && (
+                        s.Gender.ToLower() == "female"
+                        || s.Gender.ToLower() == "f"
+                        || s.Gender.Contains("মহিলা")
+                        || s.Gender.Contains("নারী"))),
+                g.Count()))
+            .OrderBy(r => r.ClassName)
+            .ThenBy(r => r.SectionName)
+            .ToListAsync(cancellationToken);
+
+        return rows;
     }
 
     public async Task<IReadOnlyList<Student>> GetByGuardianUserIdAsync(

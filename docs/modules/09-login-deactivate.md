@@ -10,8 +10,8 @@ Filtered view of students whose **login** is off (`users.active = false`). Stude
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/login-deactivate` | List (Class/Section/Search; `?export=` for file) |
-| PUT | `/api/login-deactivate/{studentId}/activate` | Enable login |
-| PUT | `/api/login-deactivate/{studentId}/deactivate` | Disable login |
+| PATCH | `/api/login-deactivate/{studentId}/activate` | Enable login |
+| PATCH | `/api/login-deactivate/{studentId}/deactivate` | Disable login |
 | POST | `/api/login-deactivate/bulk-activate` | Activate selected → `{ activated, failed }` |
 
 ## List columns

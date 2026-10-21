@@ -208,7 +208,7 @@ public class TenantService : ITenantService
             {
                 MaxUsers = dto.Features?.MaxUsers > 0 ? dto.Features.MaxUsers : maxUsers,
                 StorageQuotaGB = dto.Features?.StorageQuotaGB > 0 ? dto.Features.StorageQuotaGB : 10,
-                AllowSelfRegistration = dto.Features?.AllowSelfRegistration ?? true,
+                AllowSelfRegistration = dto.Features?.AllowSelfRegistration ?? false,
                 RequireEmailVerification = dto.Features?.RequireEmailVerification ?? true
             },
             Branding = new BrandingSettings

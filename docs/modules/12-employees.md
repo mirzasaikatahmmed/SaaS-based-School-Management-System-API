@@ -31,7 +31,7 @@ All require `Authorization` + `X-Tenant-ID`.
 | GET | `/api/employees/{id}` | Detail |
 | GET | `/api/employees/me` | Own profile (Teacher) |
 | POST | `/api/employees` | Add (creates `users` + `employees`, auto `staff_id`) |
-| PUT | `/api/employees/{id}` | Update |
+| PATCH | `/api/employees/{id}` | Update |
 | DELETE | `/api/employees/{id}` | Soft delete |
 | POST | `/api/employees/{id}/photo` | Profile photo → MinIO `employees/{id}/profile.*` |
 | POST | `/api/employees/{id}/signature` | Signature image → MinIO `employees/{id}/signature.*` |
@@ -49,8 +49,8 @@ All require `Authorization` + `X-Tenant-ID`.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/employee-login-deactivate?role=` | **Role required** — login-inactive employees |
-| PUT | `.../{id}/activate` | `users.active = true` |
-| PUT | `.../{id}/deactivate` | `users.active = false` |
+| PATCH | `.../{id}/activate` | `users.active = true` |
+| PATCH | `.../{id}/deactivate` | `users.active = false` |
 | POST | `.../bulk-activate` | Batch activate in one transaction |
 
 ## Rules

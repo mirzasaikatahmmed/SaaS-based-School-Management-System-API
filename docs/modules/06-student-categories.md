@@ -10,7 +10,7 @@ Tenant-scoped category master used on admission (e.g. COMMON, GENERAL).
 |--------|------|-------|-------------|
 | GET | `/api/student-categories` | Super Admin, Admin, Teacher | List (includes Branch = school name) |
 | POST | `/api/student-categories` | Super Admin, Admin | Create |
-| PUT | `/api/student-categories/{id}` | Super Admin, Admin | Update |
+| PATCH | `/api/student-categories/{id}` | Super Admin, Admin | Update |
 | DELETE | `/api/student-categories/{id}` | Super Admin, Admin | Delete |
 
 ## Rules

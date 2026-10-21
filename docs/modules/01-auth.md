@@ -13,7 +13,7 @@ Custom JWT auth (no ASP.NET Identity). Passwords hashed with BCrypt; `$2y$` (PHP
 | POST | `/api/auth/refresh-token` | Public | Rotate access token |
 | POST | `/api/auth/revoke-token` | Bearer | Revoke refresh token |
 | GET | `/api/auth/me` | Bearer | Current user profile |
-| PUT | `/api/auth/me` | Bearer | Update current profile |
+| PATCH | `/api/auth/me` | Bearer | Update current profile (school users only) |
 
 ## Workflow
 
@@ -23,5 +23,8 @@ Custom JWT auth (no ASP.NET Identity). Passwords hashed with BCrypt; `$2y$` (PHP
 
 ## Notes
 
-- Access token ~15 minutes; refresh ~7 days (stored per tenant schema).
+- Access token ~15 minutes; refresh ~7 days.
+- School-user refresh tokens are stored per tenant schema. Super Admin refresh tokens are stored on `public.super_admins` and use the `sa:{id}:{token}` format. Refresh does **not** need `X-Tenant-ID` for Super Admin.
+- `POST /api/auth/register` is tenant-scoped, requires `AllowSelfRegistration`, and may only create **student** or **parent** accounts.
 - Role claim uses ahskbera **prefix** values (`admin`, `teacher`, `parent`, …).
+- Updates use **PATCH** (no PUT).

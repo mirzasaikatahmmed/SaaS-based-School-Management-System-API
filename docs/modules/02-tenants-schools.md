@@ -11,7 +11,7 @@ Provisions a school as a SaaS tenant: PostgreSQL schema `tenant_{slug}` + MinIO 
 | POST | `/api/tenants` | Super Admin | Create tenant (schema + bucket + admin) |
 | GET | `/api/tenants` | Super Admin | List tenants |
 | GET | `/api/tenants/{slug}` | Auth | Get tenant |
-| PUT | `/api/tenants/{slug}/settings` | Super Admin, Admin | Update settings |
+| PATCH | `/api/tenants/{slug}/settings` | Super Admin, Admin | Update settings |
 | DELETE | `/api/tenants/{slug}` | Super Admin | Remove tenant |
 
 ## Schools — `/api/schools`
@@ -21,11 +21,11 @@ Provisions a school as a SaaS tenant: PostgreSQL schema `tenant_{slug}` + MinIO 
 | GET | `/api/schools` | Super Admin | Paginated list (+ export) |
 | GET | `/api/schools/{slug}` | Auth | School detail |
 | POST | `/api/schools` | Super Admin | Create school |
-| PUT | `/api/schools/{slug}` | Super Admin, Admin | Update |
+| PATCH | `/api/schools/{slug}` | Super Admin, Admin | Update |
 | DELETE | `/api/schools/{slug}` | Super Admin | Soft/hard remove |
-| PUT | `/api/schools/{slug}/activate` | Super Admin | Re-activate |
+| PATCH | `/api/schools/{slug}/activate` | Super Admin | Re-activate |
 | POST | `/api/schools/{slug}/logo` | Super Admin, Admin | Upload logo → MinIO |
-| GET/PUT | `/api/schools/{slug}/settings` | Super Admin, Admin | Branding / features / security |
+| GET/PATCH | `/api/schools/{slug}/settings` | Super Admin, Admin | Branding / features / security |
 | GET | `/api/schools/{slug}/stats` | Super Admin, Admin | Users, storage, subscription |
 
 ## Workflow
